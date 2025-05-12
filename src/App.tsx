@@ -1,12 +1,19 @@
+import { Route, Routes } from "react-router"
+import Login from "./routes/Login/Login"
+import Layout from "./Layout";
 
 function App() {
 
   return (
-    <>
-      <div className=''>
+    <Routes>
+      
+      <Route index element={<Login/>}/>
 
-      </div>
-    </>
+      <Route path="/" element={<Layout/>}>
+        <Route path="ventas" element={<div>Hola</div>}/>
+      </Route>
+      
+    </Routes>
   )
 }
 
