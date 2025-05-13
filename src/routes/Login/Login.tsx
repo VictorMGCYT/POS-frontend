@@ -47,7 +47,7 @@ function Login() {
 
   return (
     <>
-      <div className='flex flex-col w-full h-screen items-center justify-center dark:bg-slate-950'>
+      <div className='flex flex-col w-full h-screen items-center justify-center'>
         <h1 className="text-4xl font-bold mb-8">
           Tienda POS
         </h1>

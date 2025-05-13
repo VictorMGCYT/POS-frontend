@@ -12,14 +12,15 @@ export default function Layout() {
         <SidebarProvider>
         <AppSidebar />
         <main className='w-full'>
-                <SidebarTrigger className='flex sticky top-0 h-[60px] rounded-[0] border-b border-b-gray-200 z-10'/>
+                <SidebarTrigger className='flex sticky top-0 h-[60px] rounded-[0] border-b border-b-gray-200 
+                dark:border-b-slate-800 z-10'/>
                 {/* Todo el content que no pertenezca al sidebar */}
                 <Outlet /> {/* Aquí se renderizan las rutas hijas */}
             </main>
             <div 
             className='flex items-center justify-end right-4 
             fixed top-0 h-[60px] w-full border-b border-b-gray-200 gap-4 bg-white
-            dark:bg-neutral-950'>
+            dark:bg-slate-950 dark:border-b-slate-800'>
                 {/* <Bell size={20}/> */}
                 <button
                     className="px-4 text-sm py-2 bg-gray-200 dark:bg-gray-800 dark:text-white rounded"

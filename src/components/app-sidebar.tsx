@@ -1,16 +1,18 @@
-import { ChartColumnIncreasing, Inbox, ShoppingCart, Users2 } from "lucide-react"
+import { ChartColumnIncreasing, ClipboardList, Inbox, ShoppingCart, Users2 } from "lucide-react"
 
 import {
   Sidebar,
   SidebarContent,
+  SidebarFooter,
   SidebarGroup,
   SidebarGroupContent,
-  SidebarGroupLabel,
+  SidebarHeader,
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar"
-import { Link } from "react-router"
+import { Link, useLocation } from "react-router"
+import { Button } from "./ui/button";
 
 // Menu items.
 const items = [
@@ -37,29 +39,48 @@ const items = [
 ]
 
 export function AppSidebar() {
+  const location = useLocation();
+
+
   return (
     <Sidebar>
+      <SidebarHeader className="flex flex-row items-center border-b
+        text-xl font-bold text-black dark:text-white h-[60px] ml-2">
+        <ClipboardList/>
+        TiendaPOS
+      </SidebarHeader>
       <SidebarContent>
         <SidebarGroup>
-          <SidebarGroupLabel className="text-xl font-bold text-black dark:text-white h-[50px]">
-            TiendaPOS
-          </SidebarGroupLabel>
           <SidebarGroupContent>
-            <SidebarMenu>
-              {items.map((item) => (
+            <SidebarMenu className="mt-2">
+              {items.map((item) => {
+              const isActive = location.pathname === item.url;
+              return (
                 <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton asChild>
+                  <SidebarMenuButton 
+                    className={isActive ? 
+                      "bg-blue-600 text-white h-9 pl-4 hover:bg-blue-800 hover:text-white" : 
+                      "h-9 pl-4"}
+                    asChild>
                     <Link to={item.url}>
                       <item.icon />
                       <span>{item.title}</span>
                     </Link>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
-              ))}
+              )}
+              )}
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
+      <SidebarFooter>
+        <Button 
+          className="bg-transparent border border-red-500 text-red-500
+          hover:bg-red-100 hover:cursor-pointer">
+          Cerrar Sesión
+        </Button>
+      </SidebarFooter>
     </Sidebar>
   )
 }
