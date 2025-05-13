@@ -7,10 +7,13 @@ import { handleErrors, validateLogin } from "./validateData"
 import axios from 'axios'
 import { API_URL } from "@/global/variables/apiUrl"
 import { useNavigate } from "react-router"
+import { useTheme } from "@/hooks/useTheme"
 
 
 
 function Login() {
+  // Invocamos el hook para poder cargar el estado del dark mode
+  useTheme();
   const [loginData, setLoginData] = useState({
     username: '',
     password: ''

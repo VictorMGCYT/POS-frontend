@@ -11,7 +11,7 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar"
-import { Link, useLocation } from "react-router"
+import { Link, useLocation, useNavigate } from "react-router"
 import { Button } from "./ui/button";
 
 // Menu items.
@@ -40,7 +40,12 @@ const items = [
 
 export function AppSidebar() {
   const location = useLocation();
+  const navigate = useNavigate();
 
+  function handleLogout() {
+    // TODO manejar revocación de credenciales
+    navigate('/');
+  }
 
   return (
     <Sidebar>
@@ -60,7 +65,7 @@ export function AppSidebar() {
                   <SidebarMenuButton 
                     className={isActive ? 
                       "bg-blue-600 text-white h-9 pl-4 hover:bg-blue-800 hover:text-white" : 
-                      "h-9 pl-4"}
+                      "h-9 pl-4 dark:hover:bg-slate-800"}
                     asChild>
                     <Link to={item.url}>
                       <item.icon />
@@ -76,8 +81,9 @@ export function AppSidebar() {
       </SidebarContent>
       <SidebarFooter>
         <Button 
+          onClick={handleLogout}
           className="bg-transparent border border-red-500 text-red-500
-          hover:bg-red-100 hover:cursor-pointer">
+          hover:bg-red-100 hover:cursor-pointer dark:hover:bg-slate-800">
           Cerrar Sesión
         </Button>
       </SidebarFooter>
