@@ -9,7 +9,6 @@ function App() {
       
       <Route index element={<Login/>}/>
 
-      {/* TODO agregar más rutas */}
       <Route path="/" element={<Layout/>}>
         <Route path="ventas" element={<div>Hola</div>}/>
       </Route>
