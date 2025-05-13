@@ -24,7 +24,7 @@ export default function Layout() {
                 <button
                     className="px-4 text-sm py-2 bg-gray-200 dark:bg-gray-800 dark:text-white rounded"
                     onClick={() => setTheme(theme === "dark" ? "light" : "dark")}>
-                    {theme === "dark" ? <Moon/> : <Sun/>}
+                    {theme === "dark" ? <Moon size={20}/> : <Sun size={20}/>}
                 </button>
                 <h3 className='font-medium'>
                     {"Rol de usuario"}
