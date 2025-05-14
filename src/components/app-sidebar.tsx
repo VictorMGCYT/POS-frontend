@@ -1,4 +1,4 @@
-import { ChartColumnIncreasing, ClipboardList, Inbox, ShoppingCart, Users2 } from "lucide-react"
+import { ChartColumnIncreasing, ClipboardList, DoorOpenIcon, Inbox, ShoppingCart, Users2 } from "lucide-react"
 
 import {
   Sidebar,
@@ -79,11 +79,12 @@ export function AppSidebar() {
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
-      <SidebarFooter>
+      <SidebarFooter className="border-t">
         <Button 
           onClick={handleLogout}
-          className="bg-transparent border border-red-500 text-red-500
-          hover:bg-red-100 hover:cursor-pointer dark:hover:bg-slate-800">
+          variant={"outline"}
+          className="mb-2 mt-2 hover:cursor-pointer dark:bg-slate-950">
+          <DoorOpenIcon/>
           Cerrar Sesión
         </Button>
       </SidebarFooter>

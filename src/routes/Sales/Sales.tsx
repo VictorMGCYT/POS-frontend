@@ -2,7 +2,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { SearchIcon } from "lucide-react";
+import { Printer, SearchIcon, Trash } from "lucide-react";
 import { useEffect, useState } from "react";
 import { productsList, type productsListInteface } from "./List";
 import { Badge } from "@/components/ui/badge";
@@ -73,7 +73,7 @@ export default function Sales(){
                         </div>
                     </CardContent>
                     <CardFooter>
-                        <div className="w-full rounded-md border max-h-[300px] overflow-y-auto">
+                        <div className="w-full rounded-md border h-[46vh] overflow-y-auto">
                             <Table>
                                 <TableHeader>
                                     <TableRow className="dark:hover:bg-slate-900">
@@ -132,9 +132,46 @@ export default function Sales(){
                     </CardFooter>
                 </Card>
                 
-                <p>
-                    dos
-                </p>
+                <Card>
+                    <CardHeader>
+                        <CardTitle className="text-2xl font-semibold">
+                            Ticket de Venta
+                        </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                        <Table>
+                                <TableHeader>
+                                    <TableRow className="dark:hover:bg-slate-900">
+                                        <TableHead className="max-w-[120px]">Producto</TableHead>
+                                        <TableHead>Cant./Peso</TableHead>
+                                        <TableHead className="text-center">Precio</TableHead>
+                                        <TableHead>Subtotal</TableHead>
+                                        <TableHead></TableHead>
+                                    </TableRow>
+                                </TableHeader>
+                                <TableBody>
+                                    <TableRow>
+                                        <TableCell>1</TableCell>
+                                        <TableCell>1</TableCell>
+                                        <TableCell>1</TableCell>
+                                        <TableCell>1</TableCell>
+                                        <TableCell><Trash/></TableCell>
+                                    </TableRow>
+                                </TableBody>
+                            </Table>
+                    </CardContent>
+                    <CardFooter className="mt-auto">
+                        <div className="w-full grid grid-cols-[3fr_2fr] gap-2">
+                            <Button>
+                                Completar Venta
+                            </Button>
+                            <Button>
+                                <Printer/>
+                                Imprimir
+                            </Button>
+                        </div>
+                    </CardFooter>
+                </Card>
             </div>
         </>
     )
