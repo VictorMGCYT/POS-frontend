@@ -3,11 +3,43 @@ import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/componen
 import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { SearchIcon } from "lucide-react";
+import { useEffect, useState } from "react";
+import { productsList, type productsListInteface } from "./List";
+import { Badge } from "@/components/ui/badge";
 
 
 
 export default function Sales(){
+    const [products, setProducts] = useState<productsListInteface[]>([]);
+    // Estos serán los datos que vienen desde la DB
+    const [originalProducts] = useState<productsListInteface[]>(productsList);
+    const [searchTerm, setSearchTerm] = useState("");
 
+    useEffect(() => {
+        setProducts(productsList);
+    }, [])
+
+    useEffect(() => {
+        console.log(products);
+    }, [products])
+
+    function addToCart(product: productsListInteface) {
+        console.log(product);
+    }
+
+    useEffect(() => {
+        if (searchTerm.length === 0) {
+            setProducts(originalProducts);
+        }else{
+            const filterProducts = originalProducts.filter( product => {
+                return(
+                    product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                    product.skuCode.toUpperCase().includes(searchTerm.toUpperCase())
+                )
+            })
+            setProducts(filterProducts);
+        }
+    }, [searchTerm])
 
     return(
         <>
@@ -29,38 +61,71 @@ export default function Sales(){
                         </CardTitle>
                     </CardHeader>
                     <CardContent>
-                        <div className="flex items-center w-full space-x-2 rounded-lg border dar:border-slate-700 bg-gray-50 dark:bg-slate-950 px-3.5 py-2">
+                        <div 
+                            className="flex items-center w-full space-x-2 rounded-lg border 
+                            dark:border-slate-700 bg-gray-50 dark:bg-slate-950 px-3.5 py-2">
                             <SearchIcon className="h-4 w-4" />
                             <Input 
+                            onChange={(e) => setSearchTerm(e.target.value)}
                             type="search" 
                             placeholder="Buscar producto por nombre o código de barras" 
                             className="w-full border-0 h-6 font-semibold" />
                         </div>
                     </CardContent>
                     <CardFooter>
-                        <div className="w-full rounded-md border">
+                        <div className="w-full rounded-md border max-h-[300px] overflow-y-auto">
                             <Table>
                                 <TableHeader>
                                     <TableRow className="dark:hover:bg-slate-900">
-                                        <TableHead className="w-[100px]">Producto</TableHead>
+                                        <TableHead className="max-w-[120px]">Producto</TableHead>
                                         <TableHead>Precio</TableHead>
-                                        <TableHead>Stock</TableHead>
+                                        <TableHead className="text-center">Stock</TableHead>
                                         <TableHead>Tipo</TableHead>
                                         <TableHead></TableHead>
                                     </TableRow>
                                 </TableHeader>
                                 <TableBody>
-                                    <TableRow className="dark:hover:bg-slate-900">
-                                        <TableCell className="font-medium">INV001</TableCell>
-                                        <TableCell>Paid</TableCell>
-                                        <TableCell>Credit Card</TableCell>
-                                        <TableCell>$250.00</TableCell>
-                                        <TableCell>
-                                            <Button variant={"outline"}>
-                                                +
-                                            </Button>
-                                        </TableCell>
-                                    </TableRow>
+                                    {   
+                                        products.map( (product) => {
+                                            const {id, name, unitPrice, stockQuantity, isByWeight} = product;
+                                            return(
+                                                <TableRow key={id} className="dark:hover:bg-slate-900">
+                                                    <TableCell className="max-w-[120px] font-medium truncate">
+                                                        {name}
+                                                    </TableCell>
+                                                    <TableCell>
+                                                        {unitPrice}
+                                                    </TableCell>
+                                                    <TableCell className="text-center">
+                                                        {
+                                                            Number(stockQuantity) >= 4 ?
+                                                            (isByWeight ? Number(stockQuantity).toFixed(2) : Number(stockQuantity).toFixed(0)) 
+                                                            :
+                                                            <Badge
+                                                                variant={"destructive"}>
+                                                                {(isByWeight ? Number(stockQuantity).toFixed(2) : Number(stockQuantity).toFixed(0))}
+                                                            </Badge>
+                                                        }
+                                                    </TableCell>
+                                                    <TableCell> 
+                                                        {
+                                                            isByWeight ?
+                                                            <Badge variant={"secondary"}>Por Peso</Badge> :
+                                                            <Badge variant={"secondary"}>Por Unidad</Badge>
+                                                        }
+                                                    </TableCell>
+                                                    <TableCell>
+                                                        <Button 
+                                                            className="hover:cursor-pointer"
+                                                            onClick={() => addToCart(product)}
+                                                            variant={"outline"}>
+                                                            +
+                                                        </Button>
+                                                    </TableCell>
+                                                </TableRow>
+                                            )
+                                        })
+                                    }
                                 </TableBody>
                             </Table>
                         </div>
