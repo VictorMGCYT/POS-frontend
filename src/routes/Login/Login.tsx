@@ -35,6 +35,8 @@ function Login() {
       await axios.post(`${url}/auth/login`, {
         "username": loginData.username,
         "password": loginData.password
+      }, {
+        withCredentials: true
       });
 
       // Redirigimos a la pantalla principal de ventas
@@ -73,6 +75,7 @@ function Login() {
                 Contraseña:
               </Label>
               <Input
+                type="password"
                 onChange={ e => setLoginData(prev => ({...prev, password: e.target.value}))}
               />
               <Button 

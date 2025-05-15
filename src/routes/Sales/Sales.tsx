@@ -4,42 +4,46 @@ import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Printer, SearchIcon, Trash } from "lucide-react";
 import { useEffect, useState } from "react";
-import { productsList, type productsListInteface } from "./List";
 import { Badge } from "@/components/ui/badge";
+import type { productsListInteface } from "./products.interface";
+import useProduct from "@/hooks/useProduct";
 
 
 
 export default function Sales(){
-    const [products, setProducts] = useState<productsListInteface[]>([]);
-    // Estos serán los datos que vienen desde la DB
-    const [originalProducts] = useState<productsListInteface[]>(productsList);
+    // Con nuestro customhook extraemos los productos y su paginación de la base
+    const products= useProduct();
+    const [originalProducts, setOriginalProducts] = useState<productsListInteface[]>([]);
     const [searchTerm, setSearchTerm] = useState("");
+    const [filteredProducts, setFilteredProducts] = useState<productsListInteface[]>([]);
 
+    // ** Efecto inicial para asignar productos
     useEffect(() => {
-        setProducts(productsList);
-    }, [])
-
-    useEffect(() => {
-        console.log(products);
+        if (products && products.products.length > 0) {
+            setOriginalProducts(products.products);
+            setFilteredProducts(products.products);
+        }
     }, [products])
 
+    // ** Efecto para filtrar los productos por nombre o código de barras
+    useEffect(() => {
+        if (searchTerm.length === 0) {
+            setFilteredProducts(originalProducts);
+        } else {
+            const filterProducts = originalProducts.filter(product => {
+                return (
+                    product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                    product.skuCode.toUpperCase().includes(searchTerm.toUpperCase())
+                );
+            });
+            setFilteredProducts(filterProducts);
+        }
+    }, [searchTerm, originalProducts]);
+
+    // TODO agregar al carrito
     function addToCart(product: productsListInteface) {
         console.log(product);
     }
-
-    useEffect(() => {
-        if (searchTerm.length === 0) {
-            setProducts(originalProducts);
-        }else{
-            const filterProducts = originalProducts.filter( product => {
-                return(
-                    product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                    product.skuCode.toUpperCase().includes(searchTerm.toUpperCase())
-                )
-            })
-            setProducts(filterProducts);
-        }
-    }, [searchTerm])
 
     return(
         <>
@@ -86,7 +90,7 @@ export default function Sales(){
                                 </TableHeader>
                                 <TableBody>
                                     {   
-                                        products.map( (product) => {
+                                        filteredProducts.map( (product) => {
                                             const {id, name, unitPrice, stockQuantity, isByWeight} = product;
                                             return(
                                                 <TableRow key={id} className="dark:hover:bg-slate-900">
