@@ -13,6 +13,9 @@ import {
 } from "@/components/ui/sidebar"
 import { Link, useLocation, useNavigate } from "react-router"
 import { Button } from "./ui/button";
+import { useUserStore } from "@/global/states/userStore";
+import axios from "axios";
+import { API_URL } from "@/global/variables/apiUrl";
 
 // Menu items.
 const items = [
@@ -39,12 +42,23 @@ const items = [
 ]
 
 export function AppSidebar() {
+  const user = useUserStore((state) => state.user)
   const location = useLocation();
   const navigate = useNavigate();
+  const url = API_URL;
 
-  function handleLogout() {
-    // TODO manejar revocación de credenciales
-    navigate('/');
+  async function handleLogout() {
+    try {
+      await axios.post(`${url}/auth/logout`, 
+        {},
+        {
+          withCredentials: true
+        }
+      );
+      navigate('/');
+    } catch (error) {
+      navigate('/');
+    }
   }
 
   return (
@@ -60,6 +74,9 @@ export function AppSidebar() {
             <SidebarMenu className="mt-2">
               {items.map((item) => {
               const isActive = location.pathname === item.url;
+              const userRole = user?.role;
+              if(userRole === 'user' && item.title === 'Inventario') return
+              if(userRole === 'user' && item.title === 'Usuarios') return
               return (
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton 

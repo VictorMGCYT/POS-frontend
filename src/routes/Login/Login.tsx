@@ -8,6 +8,7 @@ import axios from 'axios'
 import { API_URL } from "@/global/variables/apiUrl"
 import { useNavigate } from "react-router"
 import { useTheme } from "@/hooks/useTheme"
+import { useUserStore } from "@/global/states/userStore"
 
 
 
@@ -32,12 +33,16 @@ function Login() {
     try {
       const url = API_URL;
       setLoading(true);
-      await axios.post(`${url}/auth/login`, {
+      const response = await axios.post(`${url}/auth/login`, {
         "username": loginData.username,
         "password": loginData.password
       }, {
         withCredentials: true
       });
+
+      const user = response.data;
+
+      useUserStore.getState().setUser(user);
 
       // Redirigimos a la pantalla principal de ventas
       navigate('/ventas');

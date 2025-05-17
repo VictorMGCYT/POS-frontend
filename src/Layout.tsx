@@ -3,9 +3,11 @@ import { AppSidebar } from "@/components/app-sidebar"
 import { Outlet } from "react-router"
 import { Moon, Sun } from "lucide-react";
 import { useTheme } from "./hooks/useTheme";
+import { useUserStore } from "./global/states/userStore";
 
 export default function Layout() {
-
+    // Importamos el estado global de sustand con el usuario logeado
+    const user = useUserStore((state) => state.user);
     const { theme, setTheme } = useTheme();
 
     return (
@@ -28,7 +30,7 @@ export default function Layout() {
                     {theme === "dark" ? <Moon size={20}/> : <Sun size={20}/>}
                 </button>
                 <h3 className='font-medium'>
-                    {"Rol de usuario"}
+                    {user?.username}
                 </h3>
             </div>
         </SidebarProvider>

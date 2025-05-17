@@ -7,15 +7,20 @@ import { useEffect, useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import type { productsListInteface } from "./products.interface";
 import useProduct from "@/hooks/useProduct";
+import useUser from "@/hooks/useUser";
 
 
 
 export default function Sales(){
     // Con nuestro customhook extraemos los productos y su paginación de la base
     const products= useProduct();
+    // Ahora con este customhook obtenemos el usuario y lo asignamos a Zustan
+    // además de que con el validamos las credenciales e impedimos accesos inautorizados
+    useUser();
     const [originalProducts, setOriginalProducts] = useState<productsListInteface[]>([]);
     const [searchTerm, setSearchTerm] = useState("");
     const [filteredProducts, setFilteredProducts] = useState<productsListInteface[]>([]);
+    
 
     // ** Efecto inicial para asignar productos
     useEffect(() => {
