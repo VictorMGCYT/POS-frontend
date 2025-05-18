@@ -1,5 +1,5 @@
 import { toast } from "sonner";
-import type { InterfaceLoginData } from "./loginData.interface";
+import type { InterfaceLoginData } from "./interfaces/loginData.interface";
 import { isAxiosError } from "axios";
 
 

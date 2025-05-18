@@ -5,21 +5,29 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Printer, SearchIcon, Trash } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Badge } from "@/components/ui/badge";
-import type { productsListInteface } from "./products.interface";
+import type { productsListInteface } from "./interfaces/products.interface";
 import useProduct from "@/hooks/useProduct";
 import useUser from "@/hooks/useUser";
+import type { SaleInterface } from "./interfaces/sale.interface";
+import Decimal from 'decimal.js';
+import { toast } from "sonner";
 
 
 
 export default function Sales(){
     // Con nuestro customhook extraemos los productos y su paginación de la base
-    const products= useProduct();
+    const [products, setProducts] = useProduct();
     // Ahora con este customhook obtenemos el usuario y lo asignamos a Zustan
     // además de que con el validamos las credenciales e impedimos accesos inautorizados
-    useUser();
+    const user = useUser();
     const [originalProducts, setOriginalProducts] = useState<productsListInteface[]>([]);
     const [searchTerm, setSearchTerm] = useState("");
     const [filteredProducts, setFilteredProducts] = useState<productsListInteface[]>([]);
+    const [cart, setCart] = useState<SaleInterface>({
+        userId: '',
+        paymentMethod: '',
+        saleItems: []
+    });
     
 
     // ** Efecto inicial para asignar productos
@@ -45,9 +53,44 @@ export default function Sales(){
         }
     }, [searchTerm, originalProducts]);
 
+    // ** Asignamos el usuario encargado de la venta a los datos del ticket
+    useEffect(() => {
+        if(user){
+            setCart((prev) => ({...prev, userId: user.id}));
+        }
+    }, [user])
+
     // TODO agregar al carrito
     function addToCart(product: productsListInteface) {
-        console.log(product);
+
+       if (!products) return; // Asegúrate que el estado esté cargado
+
+        const updateProducts = products.products.map((item) => {
+            if (item.id === product.id) {
+                const quantity = new Decimal(item.stockQuantity);
+
+                if (Number(quantity) <= 0) {
+                    toast.error('Advertencia',{
+                        description: 'no se cuenta con stock suficiente'
+                    })
+                    return item;
+                }
+
+                const newQuantity = quantity.minus(1);
+
+                return {
+                    ...item,
+                    stockQuantity: newQuantity.toFixed(2)
+                }
+            }
+
+            return item;
+        })
+
+        setProducts({
+            ...products,
+            products: updateProducts
+        })
     }
 
     return(
@@ -160,21 +203,36 @@ export default function Sales(){
                                 </TableHeader>
                                 <TableBody>
                                     <TableRow>
-                                        <TableCell>1</TableCell>
-                                        <TableCell>1</TableCell>
-                                        <TableCell>1</TableCell>
-                                        <TableCell>1</TableCell>
-                                        <TableCell><Trash/></TableCell>
+                                        {
+                                            cart.saleItems.length === 0 ? 
+                                            <TableCell colSpan={5} className="text-center">
+                                                No hay productos en el carrito
+                                            </TableCell>
+                                            :
+                                            <>
+                                                <TableCell>1</TableCell>
+                                                <TableCell>1</TableCell>
+                                                <TableCell>1</TableCell>
+                                                <TableCell>1</TableCell>
+                                                <TableCell><Trash/></TableCell>
+                                            </>
+                                        }
                                     </TableRow>
                                 </TableBody>
                             </Table>
                     </CardContent>
                     <CardFooter className="mt-auto">
                         <div className="w-full grid grid-cols-[3fr_2fr] gap-2">
-                            <Button>
+                            <div className="flex col-span-2 w-full bg-blue-50 
+                                h-14 rounded-lg text-xl items-center font-semibold
+                                justify-between p-4 dark:bg-slate-900">
+                                    <p>Total:</p>
+                                    <p>$0.00</p>
+                            </div>
+                            <Button className="hover:cursor-pointer">
                                 Completar Venta
                             </Button>
-                            <Button>
+                            <Button className="hover:cursor-pointer">
                                 <Printer/>
                                 Imprimir
                             </Button>

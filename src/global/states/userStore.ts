@@ -2,7 +2,7 @@
 import { create } from 'zustand';
 
 interface User {
-  id: number;
+  id: string;
   username: string;
   role: string;
 }

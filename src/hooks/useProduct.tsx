@@ -1,5 +1,5 @@
 import { API_URL } from "@/global/variables/apiUrl";
-import type { productsPagination } from "@/routes/Sales/products.interface";
+import type { productsPagination } from "@/routes/Sales/interfaces/products.interface";
 import axios from "axios";
 import { useEffect, useState } from "react";
 
@@ -26,6 +26,6 @@ export default function useProduct() {
     }, [])
 
 
-    return products;
+    return [products, setProducts] as const;
 
 }

@@ -23,4 +23,5 @@ export default function useUser() {
         loadUser()
     }, [])
 
+    return useUserStore((state) => state.user);
 }
