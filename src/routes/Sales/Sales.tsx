@@ -22,9 +22,12 @@ export default function Sales(){
     // Ahora con este customhook obtenemos el usuario y lo asignamos a Zustan
     // además de que con el validamos las credenciales e impedimos accesos inautorizados
     const user = useUser();
-    const [stockData, setStockData] = useState<productsListInteface[]>([]); // ← el stock actualizado real
+    const [stockData, setStockData] = useState<productsListInteface[]>([]);
     const [stockProducts, setStockProducts] = useState<productsListInteface[]>([]);
     const [searchTerm, setSearchTerm] = useState("");
+    const [total, setTotal] = useState('0.00');
+    const [change, setChange] = useState('0.00');
+    const [payment, setPayment] = useState('0.00');
     const [sale, setSale] = useState<SaleInterface>({
         userId: '',
         paymentMethod: 'efectivo',
@@ -63,7 +66,32 @@ export default function Sales(){
         }
     }, [searchTerm, stockData]);
 
+    // ** Efecto para ir calculando los totales.
+    useEffect(() => {
+        let total = new Decimal(0);
+        for (const item of sale.saleItems) {
+            const product = stockData.find(prod => prod.id === item.productId);
+            if (product) {
+                total = total.plus(new Decimal(item.quantity).mul(new Decimal(product.unitPrice)));
+            }
+        }
+        setTotal(total.toFixed(2));
+    }, [sale])
+
+    // ** Efecto para calcular el cambio
+    useEffect(() => {
+
+        if(payment){
+            setChange(new Decimal(new Decimal(payment).minus(new Decimal(total))).toFixed(2))
+        } else{
+            setChange('0.00')
+        }
+
+    },[payment])
+
+    // ** Función para ir agregando los productos al carrito
     function addToCart(product: productsListInteface) {
+        setSearchTerm('');
         const productId = product.id;
         const one = new Decimal(1);
 
@@ -99,22 +127,23 @@ export default function Sales(){
                 saleItems: updatedItems
             }));
 
-            // Descontamos del stockProducts
-            const updatedStock = stockProducts.map(p => {
-                if (p.id === productId) {
-                    const newStock = new Decimal(p.stockQuantity).minus(one);
-                    return {
-                        ...p,
-                        stockQuantity: newStock.toFixed(2)
-                    };
-                }
-                return p;
-            });
+            // Actualiza ambos estados
+            setStockData(prev =>
+                prev.map(prod =>
+                    prod.id === productId
+                        ? {
+                            ...prod,
+                            stockQuantity: new Decimal(prod.stockQuantity).minus(one).toFixed(2),
+                        }
+                        : prod
+                )
+            );
 
-            setStockData(updatedStock);
+
         }
     }
 
+    // ** Función para incrementar la cantidad de items del carrito
     function increaseQty(productId: string) {
         const one = new Decimal(1);
 
@@ -131,25 +160,26 @@ export default function Sales(){
                 item.productId === productId
                     ? {
                         ...item,
-                        quantity: new Decimal(item.quantity).plus(one).toString(),
+                        quantity: new Decimal(item.quantity).plus(one).toFixed(2),
                     }
                     : item
                 ),
             }));
 
             setStockData(prev =>
-                prev.map(p =>
-                p.id === productId
+                prev.map(prod =>
+                prod.id === productId
                     ? {
-                        ...p,
-                        stockQuantity: new Decimal(p.stockQuantity).minus(one).toString(),
+                        ...prod,
+                        stockQuantity: new Decimal(prod.stockQuantity).minus(one).toFixed(2),
                     }
-                    : p
+                    : prod
                 )
             );
         }
     }
 
+    // ** Función para decrementar la cantidad de items del carrito
     function decreaseQty(productId: string) {
         const one = new Decimal(1);
 
@@ -170,18 +200,19 @@ export default function Sales(){
         }));
 
         setStockData(prev =>
-            prev.map(p =>
-            p.id === productId
+            prev.map(prod =>
+            prod.id === productId
                 ? {
-                    ...p,
-                    stockQuantity: new Decimal(p.stockQuantity).plus(one).toString(),
+                    ...prod,
+                    stockQuantity: new Decimal(prod.stockQuantity).plus(one).toString(),
                 }
-                : p
+                : prod
             )
         );
 
     }
 
+    // ** Función para remover el item del carrito
     function removeFromCart(productId: string) {
         const item = sale.saleItems.find(i => i.productId === productId);
         if (!item) return;
@@ -206,6 +237,13 @@ export default function Sales(){
             saleItems: prev.saleItems.filter(i => i.productId !== productId),
         }));
     }
+
+    // ** Función para el cambio de pago
+    function handlePaymentChange(value: string) {
+        setSale( prev => ({...prev, paymentMethod: value}));
+    }
+
+    
 
 
     return(
@@ -233,6 +271,7 @@ export default function Sales(){
                             dark:border-slate-700 bg-gray-50 dark:bg-slate-950 px-3.5 py-2">
                             <SearchIcon className="h-4 w-4" />
                             <Input 
+                            value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
                             type="search" 
                             placeholder="Buscar producto por nombre o código de barras" 
@@ -373,7 +412,7 @@ export default function Sales(){
                                 h-14 rounded-lg text-xl items-center font-semibold
                                 justify-between p-4 dark:bg-slate-900">
                                     <p>Total:</p>
-                                    <p>$0.00</p>
+                                    <p>${total}</p>
                             </div>
                             {
                                 sale.saleItems.length === 0 ? 
@@ -385,7 +424,10 @@ export default function Sales(){
                                                 Método de pago:
                                             </p>
                                             <div>
-                                                <RadioGroup className="flex mt-2" defaultValue="efectivo">
+                                                <RadioGroup 
+                                                    onValueChange={handlePaymentChange}
+                                                    className="flex mt-2" 
+                                                    defaultValue="efectivo">
                                                     <div className="flex items-center space-x-2">
                                                         <RadioGroupItem value="efectivo" id="efectivo" />
                                                         <Label htmlFor="efectivo">Efectivo</Label>
@@ -401,12 +443,23 @@ export default function Sales(){
                                     <div className="col-span-2 grid grid-cols-2 gap-2">
                                         <div>
                                             <Label>Pago con:</Label>
-                                            <Input placeholder="$0.00"
+                                            <Input 
+                                            onKeyDown={(e) => {
+                                                if (e.key === "e" || e.key === "E" || e.key === "+" || e.key === "-") {
+                                                e.preventDefault();
+                                                }
+                                            }}
+                                            onChange={e => setPayment(e.target.value)}
+                                            type="number"
+                                            placeholder="$0.00"
                                             className="text-right mt-1"/>
                                         </div>
                                         <div>
                                             <Label>Cambio:</Label>
-                                            <Input placeholder="$0.00"
+                                            <Input 
+                                            disabled={true}
+                                            value={`$${change}`}
+                                            placeholder="$0.00"
                                             className="text-right mt-1"/>
                                         </div>
                                     </div>
