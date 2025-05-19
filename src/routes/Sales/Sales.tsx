@@ -9,23 +9,25 @@ import type { productsListInteface } from "./interfaces/products.interface";
 import useProduct from "@/hooks/useProduct";
 import useUser from "@/hooks/useUser";
 import type { SaleInterface } from "./interfaces/sale.interface";
-import Decimal from 'decimal.js';
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Label } from "@/components/ui/label";
+import Decimal from "decimal.js";
 import { toast } from "sonner";
 
 
 
 export default function Sales(){
     // Con nuestro customhook extraemos los productos y su paginación de la base
-    const [products, setProducts] = useProduct();
+    const products = useProduct();
     // Ahora con este customhook obtenemos el usuario y lo asignamos a Zustan
     // además de que con el validamos las credenciales e impedimos accesos inautorizados
     const user = useUser();
-    const [originalProducts, setOriginalProducts] = useState<productsListInteface[]>([]);
+    const [stockData, setStockData] = useState<productsListInteface[]>([]); // ← el stock actualizado real
+    const [stockProducts, setStockProducts] = useState<productsListInteface[]>([]);
     const [searchTerm, setSearchTerm] = useState("");
-    const [filteredProducts, setFilteredProducts] = useState<productsListInteface[]>([]);
-    const [cart, setCart] = useState<SaleInterface>({
+    const [sale, setSale] = useState<SaleInterface>({
         userId: '',
-        paymentMethod: '',
+        paymentMethod: 'efectivo',
         saleItems: []
     });
     
@@ -33,65 +35,178 @@ export default function Sales(){
     // ** Efecto inicial para asignar productos
     useEffect(() => {
         if (products && products.products.length > 0) {
-            setOriginalProducts(products.products);
-            setFilteredProducts(products.products);
+            setStockData(products.products);
+            setStockProducts(products.products);
         }
     }, [products])
 
-    // ** Efecto para filtrar los productos por nombre o código de barras
+    // ** Efecto guardar usuario en la venta
+    useEffect(() => {
+        if (user) {
+            setSale( prev => ({...prev, userId: user.id}));
+        }
+    }, [user])
+
+    // ** Efecto para fitlrar los productos
     useEffect(() => {
         if (searchTerm.length === 0) {
-            setFilteredProducts(originalProducts);
+            setStockProducts(stockData); 
         } else {
-            const filterProducts = originalProducts.filter(product => {
+            const filteredProducts = stockData.filter(product => {
                 return (
                     product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                     product.skuCode.toUpperCase().includes(searchTerm.toUpperCase())
                 );
             });
-            setFilteredProducts(filterProducts);
-        }
-    }, [searchTerm, originalProducts]);
 
-    // ** Asignamos el usuario encargado de la venta a los datos del ticket
-    useEffect(() => {
-        if(user){
-            setCart((prev) => ({...prev, userId: user.id}));
+            setStockProducts(filteredProducts);
         }
-    }, [user])
+    }, [searchTerm, stockData]);
 
-    // TODO agregar al carrito
     function addToCart(product: productsListInteface) {
+        const productId = product.id;
+        const one = new Decimal(1);
 
-       if (!products) return; // Asegúrate que el estado esté cargado
+        // Verifica si ya existe en saleItems
+        const existingItem = sale.saleItems.find(item => item.productId === productId);
 
-        const updateProducts = products.products.map((item) => {
-            if (item.id === product.id) {
-                const quantity = new Decimal(item.stockQuantity);
-
-                if (Number(quantity) <= 0) {
-                    toast.error('Advertencia',{
-                        description: 'no se cuenta con stock suficiente'
-                    })
+        if(Number(product.stockQuantity) <= 0){
+            toast.error('Advertencia', {
+                description: 'No se cuenta con stock suficiente'
+            })
+        }else {
+            // Si ya existe, sumamos 1 a la cantidad
+            let updatedItems;
+            if (existingItem) {
+                updatedItems = sale.saleItems.map(item => {
+                    if (item.productId === productId) {
+                        const newQty = new Decimal(item.quantity).plus(one);
+                        return { ...item, quantity: newQty.toFixed(2) };
+                    }
                     return item;
-                }
-
-                const newQuantity = quantity.minus(1);
-
-                return {
-                    ...item,
-                    stockQuantity: newQuantity.toFixed(2)
-                }
+                });
+            } else {
+                // Si no existe, lo agregamos
+                updatedItems = [
+                    ...sale.saleItems,
+                    { productId, quantity: one.toFixed(2) }
+                ];
             }
 
-            return item;
-        })
+            // Ahora actualizamos el estado de la venta
+            setSale(prev => ({
+                ...prev,
+                saleItems: updatedItems
+            }));
 
-        setProducts({
-            ...products,
-            products: updateProducts
-        })
+            // Descontamos del stockProducts
+            const updatedStock = stockProducts.map(p => {
+                if (p.id === productId) {
+                    const newStock = new Decimal(p.stockQuantity).minus(one);
+                    return {
+                        ...p,
+                        stockQuantity: newStock.toFixed(2)
+                    };
+                }
+                return p;
+            });
+
+            setStockData(updatedStock);
+        }
     }
+
+    function increaseQty(productId: string) {
+        const one = new Decimal(1);
+
+        const product = stockData.find( producto => producto.id === productId);
+
+        if (Number(product?.stockQuantity) <= 0) {
+            toast.error('Advertencia', {
+                description: 'No se cuenta con stock suficiente'
+            })
+        } else{
+            setSale(prev => ({
+                ...prev,
+                saleItems: prev.saleItems.map(item =>
+                item.productId === productId
+                    ? {
+                        ...item,
+                        quantity: new Decimal(item.quantity).plus(one).toString(),
+                    }
+                    : item
+                ),
+            }));
+
+            setStockData(prev =>
+                prev.map(p =>
+                p.id === productId
+                    ? {
+                        ...p,
+                        stockQuantity: new Decimal(p.stockQuantity).minus(one).toString(),
+                    }
+                    : p
+                )
+            );
+        }
+    }
+
+    function decreaseQty(productId: string) {
+        const one = new Decimal(1);
+
+        
+        setSale(prev => ({
+            ...prev,
+            saleItems: prev.saleItems
+            .map(item => {
+                if (item.productId === productId) {
+                const newQty = new Decimal(item.quantity).minus(one);
+                return newQty.greaterThan(0)
+                    ? { ...item, quantity: newQty.toString() }
+                    : null;
+                }
+                return item;
+            })
+            .filter(Boolean) as typeof prev.saleItems,
+        }));
+
+        setStockData(prev =>
+            prev.map(p =>
+            p.id === productId
+                ? {
+                    ...p,
+                    stockQuantity: new Decimal(p.stockQuantity).plus(one).toString(),
+                }
+                : p
+            )
+        );
+
+    }
+
+    function removeFromCart(productId: string) {
+        const item = sale.saleItems.find(i => i.productId === productId);
+        if (!item) return;
+
+        const quantity = new Decimal(item.quantity);
+
+        // 1. Regresar la cantidad al stock
+        setStockData(prev =>
+            prev.map(p =>
+            p.id === productId
+                ? {
+                    ...p,
+                    stockQuantity: new Decimal(p.stockQuantity).plus(quantity).toString(),
+                }
+                : p
+            )
+        );
+
+        // 2. Quitarlo del carrito
+        setSale(prev => ({
+            ...prev,
+            saleItems: prev.saleItems.filter(i => i.productId !== productId),
+        }));
+    }
+
 
     return(
         <>
@@ -106,7 +221,7 @@ export default function Sales(){
                 </div>
             </div>
             <div className="grid p-4 grid-cols-1 md:grid-cols-2 gap-2">
-                <Card>
+                <Card className="max-h-[500px]">
                     <CardHeader>
                         <CardTitle className="text-2xl font-semibold">
                             Buscar Productos
@@ -125,7 +240,7 @@ export default function Sales(){
                         </div>
                     </CardContent>
                     <CardFooter>
-                        <div className="w-full rounded-md border h-[46vh] overflow-y-auto">
+                        <div className="w-full rounded-md border h-[300px] overflow-y-auto">
                             <Table>
                                 <TableHeader>
                                     <TableRow className="dark:hover:bg-slate-900">
@@ -138,7 +253,7 @@ export default function Sales(){
                                 </TableHeader>
                                 <TableBody>
                                     {   
-                                        filteredProducts.map( (product) => {
+                                        stockProducts.map( (product) => {
                                             const {id, name, unitPrice, stockQuantity, isByWeight} = product;
                                             return(
                                                 <TableRow key={id} className="dark:hover:bg-slate-900">
@@ -184,7 +299,7 @@ export default function Sales(){
                     </CardFooter>
                 </Card>
                 
-                <Card>
+                <Card className={sale.saleItems.length === 0 ? '' : "h-[700px]"}>
                     <CardHeader>
                         <CardTitle className="text-2xl font-semibold">
                             Ticket de Venta
@@ -192,34 +307,65 @@ export default function Sales(){
                     </CardHeader>
                     <CardContent>
                         <Table>
-                                <TableHeader>
-                                    <TableRow className="dark:hover:bg-slate-900">
-                                        <TableHead className="max-w-[120px]">Producto</TableHead>
-                                        <TableHead>Cant./Peso</TableHead>
-                                        <TableHead className="text-center">Precio</TableHead>
-                                        <TableHead>Subtotal</TableHead>
-                                        <TableHead></TableHead>
+                            <TableHeader>
+                                <TableRow className="dark:hover:bg-slate-900">
+                                    <TableHead className="max-w-[120px]">Producto</TableHead>
+                                    <TableHead>Cant./Peso</TableHead>
+                                    <TableHead className="text-center">Precio</TableHead>
+                                    <TableHead>Subtotal</TableHead>
+                                    <TableHead></TableHead>
+                                </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                                {sale.saleItems.map(item => {
+                                    const product = stockData.find(p => p.id === item.productId);
+                                    if (!product) return null;
+
+                                    const quantity = new Decimal(item.quantity);
+                                    const unitPrice = new Decimal(product.unitPrice);
+                                    const subtotal = unitPrice.mul(quantity);
+
+                                    return (
+                                    <TableRow
+                                        key={product.id}
+                                        className="text-center hover:bg-slate-100 dark:hover:bg-slate-900"
+                                    >
+                                        <TableCell className="max-w-[120px] truncate">
+                                        {product.name}
+                                        </TableCell>
+
+                                        {/* Cantidad con botones */}
+                                        <TableCell className="flex justify-center items-center gap-2">
+                                        <button
+                                            className="bg-slate-200 px-2 rounded hover:bg-slate-300"
+                                            onClick={() => decreaseQty(product.id)}
+                                        >
+                                            -
+                                        </button>
+                                        {quantity.toString()}
+                                        <button
+                                            className="bg-slate-200 px-2 rounded hover:bg-slate-300"
+                                            onClick={() => increaseQty(product.id)}
+                                        >
+                                            +
+                                        </button>
+                                        </TableCell>
+
+                                        <TableCell>${unitPrice.toFixed(2)}</TableCell>
+                                        <TableCell>${subtotal.toFixed(2)}</TableCell>
+                                        <TableCell>
+                                        <Trash
+                                            size={15}
+                                            className="cursor-pointer text-red-500 hover:text-red-700"
+                                            onClick={() => removeFromCart(product.id)}
+                                        />
+                                        </TableCell>
                                     </TableRow>
-                                </TableHeader>
-                                <TableBody>
-                                    <TableRow>
-                                        {
-                                            cart.saleItems.length === 0 ? 
-                                            <TableCell colSpan={5} className="text-center">
-                                                No hay productos en el carrito
-                                            </TableCell>
-                                            :
-                                            <>
-                                                <TableCell>1</TableCell>
-                                                <TableCell>1</TableCell>
-                                                <TableCell>1</TableCell>
-                                                <TableCell>1</TableCell>
-                                                <TableCell><Trash/></TableCell>
-                                            </>
-                                        }
-                                    </TableRow>
-                                </TableBody>
-                            </Table>
+                                    );
+                                })}
+
+                            </TableBody>
+                        </Table>
                     </CardContent>
                     <CardFooter className="mt-auto">
                         <div className="w-full grid grid-cols-[3fr_2fr] gap-2">
@@ -229,6 +375,43 @@ export default function Sales(){
                                     <p>Total:</p>
                                     <p>$0.00</p>
                             </div>
+                            {
+                                sale.saleItems.length === 0 ? 
+                                <></> :
+                                <>
+                                    <div className="grid grid-cols-2 col-span-2 pt-2 pb-2 gap-2">
+                                        <div>
+                                            <p className="text-sm font-medium">
+                                                Método de pago:
+                                            </p>
+                                            <div>
+                                                <RadioGroup className="flex mt-2" defaultValue="efectivo">
+                                                    <div className="flex items-center space-x-2">
+                                                        <RadioGroupItem value="efectivo" id="efectivo" />
+                                                        <Label htmlFor="efectivo">Efectivo</Label>
+                                                    </div>
+                                                    <div className="flex items-center space-x-2">
+                                                        <RadioGroupItem value="tarjeta" id="tarjeta" />
+                                                        <Label htmlFor="tarjeta">Tarjeta</Label>
+                                                    </div>
+                                                </RadioGroup>
+                                            </div>
+                                        </div>
+                                    </div>  
+                                    <div className="col-span-2 grid grid-cols-2 gap-2">
+                                        <div>
+                                            <Label>Pago con:</Label>
+                                            <Input placeholder="$0.00"
+                                            className="text-right mt-1"/>
+                                        </div>
+                                        <div>
+                                            <Label>Cambio:</Label>
+                                            <Input placeholder="$0.00"
+                                            className="text-right mt-1"/>
+                                        </div>
+                                    </div>
+                                </>
+                            }
                             <Button className="hover:cursor-pointer">
                                 Completar Venta
                             </Button>

@@ -26,6 +26,6 @@ export default function useProduct() {
     }, [])
 
 
-    return [products, setProducts] as const;
+    return products;
 
 }
