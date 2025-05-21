@@ -13,6 +13,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import Decimal from "decimal.js";
 import { toast } from "sonner";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 
 
 
@@ -28,6 +29,7 @@ export default function Sales(){
     const [total, setTotal] = useState('0.00');
     const [change, setChange] = useState('0.00');
     const [payment, setPayment] = useState('0.00');
+    const [weightInput, setWeightInput] = useState("");
     const [sale, setSale] = useState<SaleInterface>({
         userId: '',
         paymentMethod: 'efectivo',
@@ -90,10 +92,10 @@ export default function Sales(){
     },[payment])
 
     // ** Función para ir agregando los productos al carrito
-    function addToCart(product: productsListInteface) {
+    function addToCart(product: productsListInteface, quantity = 1) {
         setSearchTerm('');
         const productId = product.id;
-        const one = new Decimal(1);
+        const one = new Decimal(quantity);
 
         // Verifica si ya existe en saleItems
         const existingItem = sale.saleItems.find(item => item.productId === productId);
@@ -243,7 +245,33 @@ export default function Sales(){
         setSale( prev => ({...prev, paymentMethod: value}));
     }
 
-    
+    // ** función para agregar cantidad por peso
+    function handleAddByWeight(product: productsListInteface) {
+        const quantity = Number(weightInput);
+
+        if (quantity > Number(product.stockQuantity)) {
+            toast.error('Advertencia', {
+                description: 'La cantidad ingresada supera el stocks'
+            })
+        } else{
+            if (quantity > 0) {
+                addToCart(product, quantity);
+                setWeightInput(""); // Limpia el input después
+            } else {
+                toast.error('Advertencia', {
+                    description: 'El dato debe ser mayor a 0'
+                });
+            }
+        }
+    };
+
+    // ** función para agregar el producto cuando hay exatamente 1 filtrado
+    function handleSearchKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
+        if (e.key === 'Enter' && stockProducts.length === 1) {
+            const productToAdd = stockProducts[0];
+            addToCart(productToAdd); // Usa la función que ya tienes
+        }
+    }
 
 
     return(
@@ -272,6 +300,7 @@ export default function Sales(){
                             <SearchIcon className="h-4 w-4" />
                             <Input 
                             value={searchTerm}
+                            onKeyDown={handleSearchKeyDown}
                             onChange={(e) => setSearchTerm(e.target.value)}
                             type="search" 
                             placeholder="Buscar producto por nombre o código de barras" 
@@ -321,12 +350,66 @@ export default function Sales(){
                                                         }
                                                     </TableCell>
                                                     <TableCell>
-                                                        <Button 
+                                                        {
+                                                            isByWeight === false ?
+                                                            <Button 
                                                             className="hover:cursor-pointer"
                                                             onClick={() => addToCart(product)}
                                                             variant={"outline"}>
                                                             +
-                                                        </Button>
+                                                            </Button>
+                                                            :
+                                                            <AlertDialog>
+                                                                <AlertDialogTrigger
+                                                                    className="w-[42px] text-center border h-[35px] rounded-md
+                                                                    dark:bg-gray-900 dark:brightness-75 dark:hover:bg-gray-800 hover:cursor-pointer">
+                                                                    +
+                                                                </AlertDialogTrigger>
+                                                                <AlertDialogContent>
+                                                                    <AlertDialogHeader>
+                                                                    <AlertDialogTitle>Ingresar Peso</AlertDialogTitle>
+                                                                    <AlertDialogDescription>
+                                                                        <p className="text-black dark:text-white text-lg font-medium">
+                                                                            {product.name}
+                                                                        </p>
+                                                                        <p>Precio: ${product.unitPrice}/kg</p>
+                                                                        <p>Stock Disponible: {product.stockQuantity}</p>
+                                                                        <div className="mt-2">
+                                                                            <Label 
+                                                                                htmlFor="quantity-weight"
+                                                                                className="mb-2 text-black dark:text-white">
+                                                                                Peso en Kilogramos:
+                                                                            </Label>
+                                                                            <Input 
+                                                                            className="text-black dark:text-white text-right"
+                                                                            value={weightInput}
+                                                                            onChange={(e) => setWeightInput(e.target.value)}
+                                                                            onKeyDown={(key) => {
+                                                                                if (key.key === "Enter") {
+                                                                                    handleAddByWeight(product)
+                                                                                }
+                                                                            }}
+                                                                            min="0.01"
+                                                                            step="0.01"
+                                                                            id="quantity-weight"
+                                                                            type="number"/>
+                                                                        </div>
+                                                                    </AlertDialogDescription>
+                                                                    </AlertDialogHeader>
+                                                                    <AlertDialogFooter>
+                                                                    <AlertDialogCancel className="hover:cursor-pointer">
+                                                                        Cancelar
+                                                                    </AlertDialogCancel>
+                                                                    <AlertDialogAction 
+                                                                    className="bg-blue-600 hover:bg-blue-800
+                                                                    dark:text-white hover:cursor-pointer"
+                                                                    onClick={() => handleAddByWeight(product)}>
+                                                                        Agregar al Carrito
+                                                                    </AlertDialogAction>
+                                                                    </AlertDialogFooter>
+                                                                </AlertDialogContent>
+                                                            </AlertDialog>
+                                                        }
                                                     </TableCell>
                                                 </TableRow>
                                             )
@@ -348,10 +431,10 @@ export default function Sales(){
                         <Table>
                             <TableHeader>
                                 <TableRow className="dark:hover:bg-slate-900">
-                                    <TableHead className="max-w-[120px]">Producto</TableHead>
-                                    <TableHead>Cant./Peso</TableHead>
+                                    <TableHead className="max-w-[120px] text-center">Producto</TableHead>
+                                    <TableHead className="text-center">Cant./Peso</TableHead>
                                     <TableHead className="text-center">Precio</TableHead>
-                                    <TableHead>Subtotal</TableHead>
+                                    <TableHead className="text-center">Subtotal</TableHead>
                                     <TableHead></TableHead>
                                 </TableRow>
                             </TableHeader>
@@ -364,43 +447,74 @@ export default function Sales(){
                                     const unitPrice = new Decimal(product.unitPrice);
                                     const subtotal = unitPrice.mul(quantity);
 
-                                    return (
-                                    <TableRow
-                                        key={product.id}
-                                        className="text-center hover:bg-slate-100 dark:hover:bg-slate-900"
-                                    >
-                                        <TableCell className="max-w-[120px] truncate">
-                                        {product.name}
-                                        </TableCell>
+                                    // Retornar una cosa u otra dependiendo del tipo de producto
+                                    if(product.isByWeight === false){
+                                        return (
+                                            <TableRow
+                                                key={product.id}
+                                                className="text-center hover:bg-slate-100 dark:hover:bg-slate-900"
+                                            >
+                                                <TableCell className="max-w-[120px] truncate">
+                                                {product.name}
+                                                </TableCell>
 
-                                        {/* Cantidad con botones */}
-                                        <TableCell className="flex justify-center items-center gap-2">
-                                        <button
-                                            className="bg-slate-200 px-2 rounded hover:bg-slate-300"
-                                            onClick={() => decreaseQty(product.id)}
-                                        >
-                                            -
-                                        </button>
-                                        {quantity.toString()}
-                                        <button
-                                            className="bg-slate-200 px-2 rounded hover:bg-slate-300"
-                                            onClick={() => increaseQty(product.id)}
-                                        >
-                                            +
-                                        </button>
-                                        </TableCell>
+                                                {/* Cantidad con botones */}
+                                                <TableCell className="flex justify-center items-center gap-2">
+                                                <button
+                                                    className="bg-slate-200 px-2 rounded hover:bg-slate-300
+                                                    dark:bg-slate-900"
+                                                    onClick={() => decreaseQty(product.id)}
+                                                >
+                                                    -
+                                                </button>
+                                                {quantity.toString()}
+                                                <button
+                                                    className="bg-slate-200 px-2 rounded hover:bg-slate-300
+                                                    dark:bg-slate-900"
+                                                    onClick={() => increaseQty(product.id)}
+                                                >
+                                                    +
+                                                </button>
+                                                </TableCell>
 
-                                        <TableCell>${unitPrice.toFixed(2)}</TableCell>
-                                        <TableCell>${subtotal.toFixed(2)}</TableCell>
-                                        <TableCell>
-                                        <Trash
-                                            size={15}
-                                            className="cursor-pointer text-red-500 hover:text-red-700"
-                                            onClick={() => removeFromCart(product.id)}
-                                        />
-                                        </TableCell>
-                                    </TableRow>
-                                    );
+                                                <TableCell>${unitPrice.toFixed(2)}</TableCell>
+                                                <TableCell>${subtotal.toFixed(2)}</TableCell>
+                                                <TableCell>
+                                                <Trash
+                                                    size={15}
+                                                    className="cursor-pointer text-red-500 hover:text-red-700"
+                                                    onClick={() => removeFromCart(product.id)}
+                                                />
+                                                </TableCell>
+                                            </TableRow>
+                                        );
+                                    } else {
+                                        return (
+                                            <TableRow
+                                                key={product.id}
+                                                className="text-center hover:bg-slate-100 dark:hover:bg-slate-900"
+                                            >
+                                                <TableCell className="max-w-[120px] truncate">
+                                                {product.name}
+                                                </TableCell>
+
+                                                {/* Cantidad con botones */}
+                                                <TableCell className="flex justify-center items-center gap-2">
+                                                {quantity.toString()}
+                                                </TableCell>
+
+                                                <TableCell>${unitPrice.toFixed(2)}</TableCell>
+                                                <TableCell>${subtotal.toFixed(2)}</TableCell>
+                                                <TableCell>
+                                                <Trash
+                                                    size={15}
+                                                    className="cursor-pointer text-red-500 hover:text-red-700"
+                                                    onClick={() => removeFromCart(product.id)}
+                                                />
+                                                </TableCell>
+                                            </TableRow>
+                                        )
+                                    }
                                 })}
 
                             </TableBody>
