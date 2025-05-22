@@ -1,10 +1,8 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Printer, SearchIcon, Trash } from "lucide-react";
-import { useEffect, useState } from "react";
-import { Badge } from "@/components/ui/badge";
+import { Printer, SearchIcon } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
 import type { productsListInteface } from "./interfaces/products.interface";
 import useProduct from "@/hooks/useProduct";
 import useUser from "@/hooks/useUser";
@@ -12,8 +10,9 @@ import type { SaleInterface } from "./interfaces/sale.interface";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import Decimal from "decimal.js";
-import { toast } from "sonner";
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
+import TableProducts from "./components/TableProducts";
+import TableTicket from "./components/TableTicket";
+import { addToCart, decreaseQty, handleAddByWeight, increaseQty, removeFromCart } from "./functions";
 
 
 
@@ -35,6 +34,8 @@ export default function Sales(){
         paymentMethod: 'efectivo',
         saleItems: []
     });
+    // Referencia para productos por Peso
+    const refInputWeight = useRef<HTMLButtonElement>(null);
     
 
     // ** Efecto inicial para asignar productos
@@ -84,192 +85,31 @@ export default function Sales(){
     useEffect(() => {
 
         if(payment){
+            console.log(payment, total)
             setChange(new Decimal(new Decimal(payment).minus(new Decimal(total))).toFixed(2))
         } else{
             setChange('0.00')
         }
 
-    },[payment])
-
-    // ** Función para ir agregando los productos al carrito
-    function addToCart(product: productsListInteface, quantity = 1) {
-        setSearchTerm('');
-        const productId = product.id;
-        const one = new Decimal(quantity);
-
-        // Verifica si ya existe en saleItems
-        const existingItem = sale.saleItems.find(item => item.productId === productId);
-
-        if(Number(product.stockQuantity) <= 0){
-            toast.error('Advertencia', {
-                description: 'No se cuenta con stock suficiente'
-            })
-        }else {
-            // Si ya existe, sumamos 1 a la cantidad
-            let updatedItems;
-            if (existingItem) {
-                updatedItems = sale.saleItems.map(item => {
-                    if (item.productId === productId) {
-                        const newQty = new Decimal(item.quantity).plus(one);
-                        return { ...item, quantity: newQty.toFixed(2) };
-                    }
-                    return item;
-                });
-            } else {
-                // Si no existe, lo agregamos
-                updatedItems = [
-                    ...sale.saleItems,
-                    { productId, quantity: one.toFixed(2) }
-                ];
-            }
-
-            // Ahora actualizamos el estado de la venta
-            setSale(prev => ({
-                ...prev,
-                saleItems: updatedItems
-            }));
-
-            // Actualiza ambos estados
-            setStockData(prev =>
-                prev.map(prod =>
-                    prod.id === productId
-                        ? {
-                            ...prod,
-                            stockQuantity: new Decimal(prod.stockQuantity).minus(one).toFixed(2),
-                        }
-                        : prod
-                )
-            );
-
-
-        }
-    }
-
-    // ** Función para incrementar la cantidad de items del carrito
-    function increaseQty(productId: string) {
-        const one = new Decimal(1);
-
-        const product = stockData.find( producto => producto.id === productId);
-
-        if (Number(product?.stockQuantity) <= 0) {
-            toast.error('Advertencia', {
-                description: 'No se cuenta con stock suficiente'
-            })
-        } else{
-            setSale(prev => ({
-                ...prev,
-                saleItems: prev.saleItems.map(item =>
-                item.productId === productId
-                    ? {
-                        ...item,
-                        quantity: new Decimal(item.quantity).plus(one).toFixed(2),
-                    }
-                    : item
-                ),
-            }));
-
-            setStockData(prev =>
-                prev.map(prod =>
-                prod.id === productId
-                    ? {
-                        ...prod,
-                        stockQuantity: new Decimal(prod.stockQuantity).minus(one).toFixed(2),
-                    }
-                    : prod
-                )
-            );
-        }
-    }
-
-    // ** Función para decrementar la cantidad de items del carrito
-    function decreaseQty(productId: string) {
-        const one = new Decimal(1);
-
-        
-        setSale(prev => ({
-            ...prev,
-            saleItems: prev.saleItems
-            .map(item => {
-                if (item.productId === productId) {
-                const newQty = new Decimal(item.quantity).minus(one);
-                return newQty.greaterThan(0)
-                    ? { ...item, quantity: newQty.toString() }
-                    : null;
-                }
-                return item;
-            })
-            .filter(Boolean) as typeof prev.saleItems,
-        }));
-
-        setStockData(prev =>
-            prev.map(prod =>
-            prod.id === productId
-                ? {
-                    ...prod,
-                    stockQuantity: new Decimal(prod.stockQuantity).plus(one).toString(),
-                }
-                : prod
-            )
-        );
-
-    }
-
-    // ** Función para remover el item del carrito
-    function removeFromCart(productId: string) {
-        const item = sale.saleItems.find(i => i.productId === productId);
-        if (!item) return;
-
-        const quantity = new Decimal(item.quantity);
-
-        // 1. Regresar la cantidad al stock
-        setStockData(prev =>
-            prev.map(p =>
-            p.id === productId
-                ? {
-                    ...p,
-                    stockQuantity: new Decimal(p.stockQuantity).plus(quantity).toString(),
-                }
-                : p
-            )
-        );
-
-        // 2. Quitarlo del carrito
-        setSale(prev => ({
-            ...prev,
-            saleItems: prev.saleItems.filter(i => i.productId !== productId),
-        }));
-    }
+    },[payment, total])
 
     // ** Función para el cambio de pago
     function handlePaymentChange(value: string) {
         setSale( prev => ({...prev, paymentMethod: value}));
     }
 
-    // ** función para agregar cantidad por peso
-    function handleAddByWeight(product: productsListInteface) {
-        const quantity = Number(weightInput);
-
-        if (quantity > Number(product.stockQuantity)) {
-            toast.error('Advertencia', {
-                description: 'La cantidad ingresada supera el stocks'
-            })
-        } else{
-            if (quantity > 0) {
-                addToCart(product, quantity);
-                setWeightInput(""); // Limpia el input después
-            } else {
-                toast.error('Advertencia', {
-                    description: 'El dato debe ser mayor a 0'
-                });
-            }
-        }
-    };
-
     // ** función para agregar el producto cuando hay exatamente 1 filtrado
     function handleSearchKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
         if (e.key === 'Enter' && stockProducts.length === 1) {
             const productToAdd = stockProducts[0];
-            addToCart(productToAdd); // Usa la función que ya tienes
+
+            if (productToAdd.isByWeight === true) {
+                setTimeout(() => {
+                    refInputWeight.current?.click();
+                }, 10)
+            } else{
+                addToCart(productToAdd, sale, setSale, setStockData, setSearchTerm); 
+            }
         }
     }
 
@@ -309,114 +149,19 @@ export default function Sales(){
                     </CardContent>
                     <CardFooter>
                         <div className="w-full rounded-md border h-[300px] overflow-y-auto">
-                            <Table>
-                                <TableHeader>
-                                    <TableRow className="dark:hover:bg-slate-900">
-                                        <TableHead className="max-w-[120px]">Producto</TableHead>
-                                        <TableHead>Precio</TableHead>
-                                        <TableHead className="text-center">Stock</TableHead>
-                                        <TableHead>Tipo</TableHead>
-                                        <TableHead></TableHead>
-                                    </TableRow>
-                                </TableHeader>
-                                <TableBody>
-                                    {   
-                                        stockProducts.map( (product) => {
-                                            const {id, name, unitPrice, stockQuantity, isByWeight} = product;
-                                            return(
-                                                <TableRow key={id} className="dark:hover:bg-slate-900">
-                                                    <TableCell className="max-w-[120px] font-medium truncate">
-                                                        {name}
-                                                    </TableCell>
-                                                    <TableCell>
-                                                        {unitPrice}
-                                                    </TableCell>
-                                                    <TableCell className="text-center">
-                                                        {
-                                                            Number(stockQuantity) >= 4 ?
-                                                            (isByWeight ? Number(stockQuantity).toFixed(2) : Number(stockQuantity).toFixed(0)) 
-                                                            :
-                                                            <Badge
-                                                                variant={"destructive"}>
-                                                                {(isByWeight ? Number(stockQuantity).toFixed(2) : Number(stockQuantity).toFixed(0))}
-                                                            </Badge>
-                                                        }
-                                                    </TableCell>
-                                                    <TableCell> 
-                                                        {
-                                                            isByWeight ?
-                                                            <Badge variant={"secondary"}>Por Peso</Badge> :
-                                                            <Badge variant={"secondary"}>Por Unidad</Badge>
-                                                        }
-                                                    </TableCell>
-                                                    <TableCell>
-                                                        {
-                                                            isByWeight === false ?
-                                                            <Button 
-                                                            className="hover:cursor-pointer"
-                                                            onClick={() => addToCart(product)}
-                                                            variant={"outline"}>
-                                                            +
-                                                            </Button>
-                                                            :
-                                                            <AlertDialog>
-                                                                <AlertDialogTrigger
-                                                                    className="w-[42px] text-center border h-[35px] rounded-md
-                                                                    dark:bg-gray-900 dark:brightness-75 dark:hover:bg-gray-800 hover:cursor-pointer">
-                                                                    +
-                                                                </AlertDialogTrigger>
-                                                                <AlertDialogContent>
-                                                                    <AlertDialogHeader>
-                                                                    <AlertDialogTitle>Ingresar Peso</AlertDialogTitle>
-                                                                    <AlertDialogDescription>
-                                                                        <p className="text-black dark:text-white text-lg font-medium">
-                                                                            {product.name}
-                                                                        </p>
-                                                                        <p>Precio: ${product.unitPrice}/kg</p>
-                                                                        <p>Stock Disponible: {product.stockQuantity}</p>
-                                                                        <div className="mt-2">
-                                                                            <Label 
-                                                                                htmlFor="quantity-weight"
-                                                                                className="mb-2 text-black dark:text-white">
-                                                                                Peso en Kilogramos:
-                                                                            </Label>
-                                                                            <Input 
-                                                                            className="text-black dark:text-white text-right"
-                                                                            value={weightInput}
-                                                                            onChange={(e) => setWeightInput(e.target.value)}
-                                                                            onKeyDown={(key) => {
-                                                                                if (key.key === "Enter") {
-                                                                                    handleAddByWeight(product)
-                                                                                }
-                                                                            }}
-                                                                            min="0.01"
-                                                                            step="0.01"
-                                                                            id="quantity-weight"
-                                                                            type="number"/>
-                                                                        </div>
-                                                                    </AlertDialogDescription>
-                                                                    </AlertDialogHeader>
-                                                                    <AlertDialogFooter>
-                                                                    <AlertDialogCancel className="hover:cursor-pointer">
-                                                                        Cancelar
-                                                                    </AlertDialogCancel>
-                                                                    <AlertDialogAction 
-                                                                    className="bg-blue-600 hover:bg-blue-800
-                                                                    dark:text-white hover:cursor-pointer"
-                                                                    onClick={() => handleAddByWeight(product)}>
-                                                                        Agregar al Carrito
-                                                                    </AlertDialogAction>
-                                                                    </AlertDialogFooter>
-                                                                </AlertDialogContent>
-                                                            </AlertDialog>
-                                                        }
-                                                    </TableCell>
-                                                </TableRow>
-                                            )
-                                        })
-                                    }
-                                </TableBody>
-                            </Table>
+                            {/* Subcomponente para generar la tabla con todos los productos */}
+                            <TableProducts
+                                stockProducts={stockProducts}
+                                addToCart={(product: productsListInteface, quantity = 1) =>
+                                    addToCart(product, sale, setSale, setStockData, setSearchTerm, quantity)
+                                }
+                                weightInput={weightInput}
+                                setWeightInput={setWeightInput}
+                                handleAddByWeight={(product: productsListInteface) => 
+                                    handleAddByWeight(product, weightInput, setWeightInput, sale, setStockData, setSale, setSearchTerm)
+                                }
+                                refInputWeight={refInputWeight}
+                            />
                         </div>
                     </CardFooter>
                 </Card>
@@ -428,97 +173,20 @@ export default function Sales(){
                         </CardTitle>
                     </CardHeader>
                     <CardContent>
-                        <Table>
-                            <TableHeader>
-                                <TableRow className="dark:hover:bg-slate-900">
-                                    <TableHead className="max-w-[120px] text-center">Producto</TableHead>
-                                    <TableHead className="text-center">Cant./Peso</TableHead>
-                                    <TableHead className="text-center">Precio</TableHead>
-                                    <TableHead className="text-center">Subtotal</TableHead>
-                                    <TableHead></TableHead>
-                                </TableRow>
-                            </TableHeader>
-                            <TableBody>
-                                {sale.saleItems.map(item => {
-                                    const product = stockData.find(p => p.id === item.productId);
-                                    if (!product) return null;
-
-                                    const quantity = new Decimal(item.quantity);
-                                    const unitPrice = new Decimal(product.unitPrice);
-                                    const subtotal = unitPrice.mul(quantity);
-
-                                    // Retornar una cosa u otra dependiendo del tipo de producto
-                                    if(product.isByWeight === false){
-                                        return (
-                                            <TableRow
-                                                key={product.id}
-                                                className="text-center hover:bg-slate-100 dark:hover:bg-slate-900"
-                                            >
-                                                <TableCell className="max-w-[120px] truncate">
-                                                {product.name}
-                                                </TableCell>
-
-                                                {/* Cantidad con botones */}
-                                                <TableCell className="flex justify-center items-center gap-2">
-                                                <button
-                                                    className="bg-slate-200 px-2 rounded hover:bg-slate-300
-                                                    dark:bg-slate-900"
-                                                    onClick={() => decreaseQty(product.id)}
-                                                >
-                                                    -
-                                                </button>
-                                                {quantity.toString()}
-                                                <button
-                                                    className="bg-slate-200 px-2 rounded hover:bg-slate-300
-                                                    dark:bg-slate-900"
-                                                    onClick={() => increaseQty(product.id)}
-                                                >
-                                                    +
-                                                </button>
-                                                </TableCell>
-
-                                                <TableCell>${unitPrice.toFixed(2)}</TableCell>
-                                                <TableCell>${subtotal.toFixed(2)}</TableCell>
-                                                <TableCell>
-                                                <Trash
-                                                    size={15}
-                                                    className="cursor-pointer text-red-500 hover:text-red-700"
-                                                    onClick={() => removeFromCart(product.id)}
-                                                />
-                                                </TableCell>
-                                            </TableRow>
-                                        );
-                                    } else {
-                                        return (
-                                            <TableRow
-                                                key={product.id}
-                                                className="text-center hover:bg-slate-100 dark:hover:bg-slate-900"
-                                            >
-                                                <TableCell className="max-w-[120px] truncate">
-                                                {product.name}
-                                                </TableCell>
-
-                                                {/* Cantidad con botones */}
-                                                <TableCell className="flex justify-center items-center gap-2">
-                                                {quantity.toString()}
-                                                </TableCell>
-
-                                                <TableCell>${unitPrice.toFixed(2)}</TableCell>
-                                                <TableCell>${subtotal.toFixed(2)}</TableCell>
-                                                <TableCell>
-                                                <Trash
-                                                    size={15}
-                                                    className="cursor-pointer text-red-500 hover:text-red-700"
-                                                    onClick={() => removeFromCart(product.id)}
-                                                />
-                                                </TableCell>
-                                            </TableRow>
-                                        )
-                                    }
-                                })}
-
-                            </TableBody>
-                        </Table>
+                        {/* Tabla con el contenido del ticket */}
+                        <TableTicket
+                            sale={sale}
+                            stockData={stockData}
+                            decreaseQty={(productId: string) => {
+                                decreaseQty(productId, setSale, setStockData)
+                            }}
+                            increaseQty={(productId: string) => 
+                                increaseQty(productId, stockData, setSale, setStockData)
+                            }
+                            removeFromCart={ (productId: string) => 
+                                removeFromCart(productId, sale, setStockData, setSale)
+                            }
+                        />
                     </CardContent>
                     <CardFooter className="mt-auto">
                         <div className="w-full grid grid-cols-[3fr_2fr] gap-2">
@@ -555,27 +223,34 @@ export default function Sales(){
                                         </div>
                                     </div>  
                                     <div className="col-span-2 grid grid-cols-2 gap-2">
-                                        <div>
-                                            <Label>Pago con:</Label>
-                                            <Input 
-                                            onKeyDown={(e) => {
-                                                if (e.key === "e" || e.key === "E" || e.key === "+" || e.key === "-") {
-                                                e.preventDefault();
-                                                }
-                                            }}
-                                            onChange={e => setPayment(e.target.value)}
-                                            type="number"
-                                            placeholder="$0.00"
-                                            className="text-right mt-1"/>
-                                        </div>
-                                        <div>
-                                            <Label>Cambio:</Label>
-                                            <Input 
-                                            disabled={true}
-                                            value={`$${change}`}
-                                            placeholder="$0.00"
-                                            className="text-right mt-1"/>
-                                        </div>
+                                        {
+                                            sale.paymentMethod === 'efectivo' ?
+                                            <>
+                                                <div>
+                                                    <Label>Pago con:</Label>
+                                                    <Input 
+                                                    onKeyDown={(e) => {
+                                                        if (e.key === "e" || e.key === "E" || e.key === "+" || e.key === "-") {
+                                                        e.preventDefault();
+                                                        }
+                                                    }}
+                                                    onChange={e => setPayment(e.target.value)}
+                                                    type="number"
+                                                    placeholder="$0.00"
+                                                    className="text-right mt-1"/>
+                                                </div>
+                                                <div>
+                                                    <Label>Cambio:</Label>
+                                                    <Input 
+                                                    disabled={true}
+                                                    value={`$${change}`}
+                                                    placeholder="$0.00"
+                                                    className="text-right mt-1"/>
+                                                </div>
+                                            </>
+                                            :
+                                            <span></span>
+                                        }
                                     </div>
                                 </>
                             }
