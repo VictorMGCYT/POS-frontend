@@ -12,13 +12,20 @@ import { Label } from "@/components/ui/label";
 import Decimal from "decimal.js";
 import TableProducts from "./components/TableProducts";
 import TableTicket from "./components/TableTicket";
-import { addToCart, decreaseQty, handleAddByWeight, increaseQty, removeFromCart } from "./functions";
+import { 
+    addToCart, 
+    decreaseQty, 
+    handleAddByWeight, 
+    increaseQty, 
+    removeFromCart 
+} from "./functions";
+import { handleSendSale } from "./api";
 
 
 
 export default function Sales(){
     // Con nuestro customhook extraemos los productos y su paginación de la base
-    const products = useProduct();
+    const {products, refetch} = useProduct();
     // Ahora con este customhook obtenemos el usuario y lo asignamos a Zustan
     // además de que con el validamos las credenciales e impedimos accesos inautorizados
     const user = useUser();
@@ -31,7 +38,7 @@ export default function Sales(){
     const [weightInput, setWeightInput] = useState("");
     const [sale, setSale] = useState<SaleInterface>({
         userId: '',
-        paymentMethod: 'efectivo',
+        paymentMethod: 'Efectivo',
         saleItems: []
     });
     // Referencia para productos por Peso
@@ -40,6 +47,7 @@ export default function Sales(){
 
     // ** Efecto inicial para asignar productos
     useEffect(() => {
+        console.log(products)
         if (products && products.products.length > 0) {
             setStockData(products.products);
             setStockProducts(products.products);
@@ -85,7 +93,6 @@ export default function Sales(){
     useEffect(() => {
 
         if(payment){
-            console.log(payment, total)
             setChange(new Decimal(new Decimal(payment).minus(new Decimal(total))).toFixed(2))
         } else{
             setChange('0.00')
@@ -209,14 +216,14 @@ export default function Sales(){
                                                 <RadioGroup 
                                                     onValueChange={handlePaymentChange}
                                                     className="flex mt-2" 
-                                                    defaultValue="efectivo">
+                                                    defaultValue="Efectivo">
                                                     <div className="flex items-center space-x-2">
-                                                        <RadioGroupItem value="efectivo" id="efectivo" />
-                                                        <Label htmlFor="efectivo">Efectivo</Label>
+                                                        <RadioGroupItem value="Efectivo" id="Efectivo" />
+                                                        <Label htmlFor="Efectivo">Efectivo</Label>
                                                     </div>
                                                     <div className="flex items-center space-x-2">
-                                                        <RadioGroupItem value="tarjeta" id="tarjeta" />
-                                                        <Label htmlFor="tarjeta">Tarjeta</Label>
+                                                        <RadioGroupItem value="Tarjeta" id="Tarjeta" />
+                                                        <Label htmlFor="Tarjeta">Tarjeta</Label>
                                                     </div>
                                                 </RadioGroup>
                                             </div>
@@ -224,7 +231,7 @@ export default function Sales(){
                                     </div>  
                                     <div className="col-span-2 grid grid-cols-2 gap-2">
                                         {
-                                            sale.paymentMethod === 'efectivo' ?
+                                            sale.paymentMethod === 'Efectivo' ?
                                             <>
                                                 <div>
                                                     <Label>Pago con:</Label>
@@ -254,7 +261,11 @@ export default function Sales(){
                                     </div>
                                 </>
                             }
-                            <Button className="hover:cursor-pointer">
+                            <Button 
+                                onClick={() => 
+                                    handleSendSale(user, payment, total, sale, refetch, setSale)
+                                }
+                                className="hover:cursor-pointer">
                                 Completar Venta
                             </Button>
                             <Button className="hover:cursor-pointer">
