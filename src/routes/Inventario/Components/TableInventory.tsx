@@ -1,31 +1,27 @@
 import { Badge } from "@/components/ui/badge";
 import { Pagination, PaginationContent, PaginationEllipsis, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "@/components/ui/pagination";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import useProduct from "@/hooks/useProduct";
-import type { productsListInteface, productsPagination } from "@/routes/Sales/interfaces/products.interface";
-import { useEffect, useState } from "react";
+import type { productsPagination } from "@/routes/Sales/interfaces/products.interface";
 
 
+interface TableInventoryProps {
+    productsPerPage: productsPagination | undefined;
+    PaginationProducts: Function;
+    currentPage: number;
+    totalPages: number
+}
 
-export default function TableInventory() {
-    // El hook solo lo usamos para la primera llamada a la API
-    const {products} = useProduct();
-    const [productsPerPage, setProductsPerPage] = useState<productsPagination>();
-    const [offset, setOffset] = useState(0);
-    const [totalPages, setTotalPages] = useState(0);
-    const [currentPage, setCuerrentPage] = useState(1);
-
-
-    useEffect(()=> {
-        if (products) {
-            setProductsPerPage(products);
-            setTotalPages(products.totalPages);
-            setCuerrentPage(products.currentPage);
-        }
-    }, [products])
+export default function TableInventory(
+    {
+        productsPerPage,
+        PaginationProducts,
+        currentPage,
+        totalPages
+    }: TableInventoryProps) {
+    
 
     return(
-        <div className="col-span-2 rounded-lg border flex flex-col">
+        <div className="col-span-2 rounded-lg border flex flex-col min-h-[300px]">
             <Table className="border-b">
                 <TableHeader>
                     <TableRow className="dark:hover:bg-slate-800">
@@ -42,6 +38,7 @@ export default function TableInventory() {
                     {
                         productsPerPage?.products.map((product) => {
                             const {
+                                id,
                                 name, 
                                 skuCode, 
                                 unitPrice, 
@@ -49,7 +46,7 @@ export default function TableInventory() {
                                 stockQuantity,
                                 isByWeight} = product;
                             return(
-                                <TableRow className="dark:hover:bg-slate-800">
+                                <TableRow key={id} className="dark:hover:bg-slate-800">
                                     <TableCell>{name}</TableCell>
                                     <TableCell>{skuCode}</TableCell>
                                     <TableCell>${unitPrice}</TableCell>
@@ -63,13 +60,15 @@ export default function TableInventory() {
                     }
                 </TableBody>
             </Table>
-            <Pagination className="justify-end">
+            <Pagination className="justify-end mt-auto">
                 <PaginationContent>
                     <PaginationItem>
-                        <PaginationPrevious href="#" />
+                        <PaginationPrevious 
+                            className="hover:cursor-pointer"
+                            onClick={() => PaginationProducts(currentPage, 'previous')}/>
                     </PaginationItem>
                     <PaginationItem>
-                        <PaginationLink href="#">{currentPage}</PaginationLink>
+                        <PaginationLink>{currentPage}</PaginationLink>
                     </PaginationItem>
                     <PaginationItem>
                         <PaginationEllipsis />
@@ -78,7 +77,9 @@ export default function TableInventory() {
                         Total: {totalPages}
                     </PaginationItem>
                     <PaginationItem>
-                        <PaginationNext href="#" />
+                        <PaginationNext 
+                            className="hover:cursor-pointer"
+                            onClick={() => PaginationProducts(currentPage, 'next')}/>
                     </PaginationItem>
                 </PaginationContent>
             </Pagination>

@@ -3,9 +3,82 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { SearchIcon } from "lucide-react";
 import TableInventory from "./Components/TableInventory";
+import { API_URL, OFFSET_PRODUCTS } from "@/global/variables/apiUrl";
+import { toast } from "sonner";
+import { useEffect, useState } from "react";
+import useProduct from "@/hooks/useProduct";
+import type { productsPagination } from "../Sales/interfaces/products.interface";
+import axios from "axios";
 
 
 export default function Inventario() {
+
+    // El hook solo lo usamos para la primera llamada a la API
+    const {products} = useProduct();
+    const [productsPerPage, setProductsPerPage] = useState<productsPagination>();
+    const [offset, setOffset] = useState(0);
+    const [totalPages, setTotalPages] = useState(0);
+    const [currentPage, setCuerrentPage] = useState(1);
+
+    // ** Efecto para inicializar los productos y la paginación
+    useEffect(()=> {
+        if (products) {
+            setProductsPerPage(products);
+            setTotalPages(products.totalPages);
+            setCuerrentPage(products.currentPage);
+        }
+    }, [products])
+
+    // ** Efecto para hacer la llamada a la API con la paginación
+    useEffect(() => {
+        
+        // Función auto ejecutable para obtener los productos paginados
+        ( async () => {
+            try {
+                const url = API_URL;
+                const response = await axios.get(`${url}/products/get-all?offset=${offset}`,{
+                    withCredentials: true,
+                });
+                const data: productsPagination = response.data;
+                if (data.products.length > 0) {
+                    setProductsPerPage(data);
+                    setTotalPages(data.totalPages);
+                    setCuerrentPage(data.currentPage);
+                }
+            } catch (error) {
+                toast.error('Error al obtener los productos', {
+                    description: 'Por favor, inténtelo de nuevo más tarde.',
+                });
+            }
+        })()
+
+    }, [offset]);
+
+
+    function PaginationProducts(paginaActual: number, action: string) {
+
+        const saltoProductos = OFFSET_PRODUCTS; 
+
+        if (action === 'next') {
+            if (paginaActual >= totalPages) {
+                toast.warning('No hay más productos para mostrar', {
+                    position: 'bottom-left'
+                });
+                return;
+            }
+            setOffset(prev => prev + saltoProductos);
+        } else if (action === 'previous') {
+            if (offset > 0) {
+                setOffset(prev => prev - saltoProductos);
+            }else{
+                toast.warning('No hay más productos para mostrar', {
+                    position: 'bottom-left'
+                });
+                return;
+            }
+        }
+
+    }
     
 
     return(
@@ -46,7 +119,13 @@ export default function Inventario() {
                         placeholder="Buscar producto por nombre o código de barras" 
                         className="w-full border-0 h-6 font-semibold" />
                     </div>
-                    <TableInventory/>
+                    <TableInventory
+                        PaginationProducts={PaginationProducts}
+                        currentPage={currentPage}
+                        productsPerPage={productsPerPage}
+                        totalPages={totalPages}
+                        
+                    />
                 </div>
                 
             </div>

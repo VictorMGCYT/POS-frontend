@@ -11,6 +11,7 @@ export default function useProduct() {
 
      const fetchProducts = useCallback(async () => {
         try {
+            // TODO aquí debe de traer absolutamente todos los productos
             const response = await axios.get(`${url}/products/get-all`, {
                 withCredentials: true
             });
