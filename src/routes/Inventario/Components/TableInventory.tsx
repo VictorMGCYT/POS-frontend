@@ -21,7 +21,7 @@ export default function TableInventory(
     
 
     return(
-        <div className="col-span-2 rounded-lg border flex flex-col min-h-[300px]">
+        <div className="col-span-2 rounded-lg border flex flex-col min-h-[300px] max-h-[400px] overflow-auto">
             <Table className="border-b">
                 <TableHeader>
                     <TableRow className="dark:hover:bg-slate-800">

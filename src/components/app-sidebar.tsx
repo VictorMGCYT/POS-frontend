@@ -15,7 +15,7 @@ import { Link, useLocation, useNavigate } from "react-router"
 import { Button } from "./ui/button";
 import { useUserStore } from "@/global/states/userStore";
 import axios from "axios";
-import { API_URL } from "@/global/variables/apiUrl";
+import { API_URL } from "@/global/variables/variables";
 
 // Menu items.
 const items = [

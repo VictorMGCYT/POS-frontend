@@ -3,7 +3,7 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { SearchIcon } from "lucide-react";
 import TableInventory from "./Components/TableInventory";
-import { API_URL, OFFSET_PRODUCTS } from "@/global/variables/apiUrl";
+import { API_URL, OFFSET_PRODUCTS } from "@/global/variables/variables";
 import { toast } from "sonner";
 import { useEffect, useState } from "react";
 import useProduct from "@/hooks/useProduct";
@@ -14,11 +14,18 @@ import axios from "axios";
 export default function Inventario() {
 
     // El hook solo lo usamos para la primera llamada a la API
-    const {products} = useProduct();
+    const {products, refetch} = useProduct();
     const [productsPerPage, setProductsPerPage] = useState<productsPagination>();
     const [offset, setOffset] = useState(0);
     const [totalPages, setTotalPages] = useState(0);
     const [currentPage, setCuerrentPage] = useState(1);
+    const [typeProducts, setTypeProducts] = useState<string>('all');
+
+    useEffect(() => {
+        setTimeout(() => {
+            refetch(OFFSET_PRODUCTS);
+        }, 300)
+    }, [])
 
     // ** Efecto para inicializar los productos y la paginación
     useEffect(()=> {
@@ -36,7 +43,7 @@ export default function Inventario() {
         ( async () => {
             try {
                 const url = API_URL;
-                const response = await axios.get(`${url}/products/get-all?offset=${offset}`,{
+                const response = await axios.get(`${url}/products/get-all?offset=${offset}&productsTipe=${typeProducts}`,{
                     withCredentials: true,
                 });
                 const data: productsPagination = response.data;
@@ -52,7 +59,7 @@ export default function Inventario() {
             }
         })()
 
-    }, [offset]);
+    }, [offset, typeProducts]);
 
 
     function PaginationProducts(paginaActual: number, action: string) {
@@ -99,14 +106,15 @@ export default function Inventario() {
                     <h2 className="text-2xl font-medium ">
                         Productos
                     </h2>
-                    <Select>
-                        <SelectTrigger className="ml-auto hover:cursor-pointer">
+                    <Select onValueChange={(value) => setTypeProducts(value)}>
+                        <SelectTrigger 
+                            className="ml-auto hover:cursor-pointer">
                             <SelectValue placeholder="Seleccione el Tipo" />
                         </SelectTrigger>
                         <SelectContent className="dark:bg-slate-950">
-                            <SelectItem className="hover:cursor-pointer" value="light">Todos</SelectItem>
-                            <SelectItem className="hover:cursor-pointer" value="dark">Por unidad</SelectItem>
-                            <SelectItem className="hover:cursor-pointer" value="system">Por peso</SelectItem>
+                            <SelectItem className="hover:cursor-pointer" value="all">Todos</SelectItem>
+                            <SelectItem className="hover:cursor-pointer" value="unit">Por unidad</SelectItem>
+                            <SelectItem className="hover:cursor-pointer" value="weight">Por peso</SelectItem>
                         </SelectContent>
                     </Select>
                     {/* Barra de busqueda */}

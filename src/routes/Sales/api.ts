@@ -1,4 +1,4 @@
-import { API_URL } from "@/global/variables/apiUrl";
+import { API_URL } from "@/global/variables/variables";
 import axios from "axios";
 import Decimal from "decimal.js";
 import { toast } from "sonner";

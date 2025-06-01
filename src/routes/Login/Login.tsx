@@ -5,7 +5,7 @@ import { Label } from "@/components/ui/label"
 import React, { useState } from "react"
 import { handleErrors, validateLogin } from "./validateData"
 import axios from 'axios'
-import { API_URL } from "@/global/variables/apiUrl"
+import { API_URL } from "@/global/variables/variables"
 import { useNavigate } from "react-router"
 import { useTheme } from "@/hooks/useTheme"
 import { useUserStore } from "@/global/states/userStore"

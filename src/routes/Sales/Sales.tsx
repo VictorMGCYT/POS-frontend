@@ -44,6 +44,10 @@ export default function Sales(){
     // Referencia para productos por Peso
     const refInputWeight = useRef<HTMLButtonElement>(null);
     
+    // ** Efecto para inicializar el ticket de venta
+    useEffect(() => {
+        refetch();
+    },[])
 
     // ** Efecto inicial para asignar productos
     useEffect(() => {

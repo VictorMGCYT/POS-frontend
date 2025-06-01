@@ -1,5 +1,5 @@
 import { useUserStore } from "@/global/states/userStore";
-import { API_URL } from "@/global/variables/apiUrl";
+import { API_URL } from "@/global/variables/variables";
 import axios from "axios";
 import { useEffect } from "react";
 import { useNavigate } from "react-router";
