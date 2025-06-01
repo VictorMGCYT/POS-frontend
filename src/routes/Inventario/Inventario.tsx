@@ -5,7 +5,7 @@ import { SearchIcon } from "lucide-react";
 import TableInventory from "./Components/TableInventory";
 import { API_URL, OFFSET_PRODUCTS } from "@/global/variables/variables";
 import { toast } from "sonner";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import useProduct from "@/hooks/useProduct";
 import type { productsPagination } from "../Sales/interfaces/products.interface";
 import axios from "axios";
@@ -20,11 +20,13 @@ export default function Inventario() {
     const [totalPages, setTotalPages] = useState(0);
     const [currentPage, setCuerrentPage] = useState(1);
     const [typeProducts, setTypeProducts] = useState<string>('all');
+    const [orderProducts, setOrderProducts] = useState<string>('asc');
+    const [stockOrder, setStockOrder] = useState<string>('desc');
+    const [searchValue, setSearchValue] = useState<string>('');
+    const refButtonSearch = useRef<HTMLButtonElement>(null);
 
     useEffect(() => {
-        setTimeout(() => {
-            refetch(OFFSET_PRODUCTS);
-        }, 300)
+        refetch(OFFSET_PRODUCTS);
     }, [])
 
     // ** Efecto para inicializar los productos y la paginación
@@ -38,12 +40,12 @@ export default function Inventario() {
 
     // ** Efecto para hacer la llamada a la API con la paginación
     useEffect(() => {
-        
+        setStockOrder('desc'); // Reseteamos el orden del orden del stock
         // Función auto ejecutable para obtener los productos paginados
         ( async () => {
             try {
                 const url = API_URL;
-                const response = await axios.get(`${url}/products/get-all?offset=${offset}&productsTipe=${typeProducts}`,{
+                const response = await axios.get(`${url}/products/get-all?offset=${offset}&productsTipe=${typeProducts}&orderProducts=${orderProducts}`,{
                     withCredentials: true,
                 });
                 const data: productsPagination = response.data;
@@ -59,7 +61,33 @@ export default function Inventario() {
             }
         })()
 
-    }, [offset, typeProducts]);
+    }, [offset, typeProducts, orderProducts]);
+
+    // ** Efecto PARA ORDENAR POR STOCK
+    useEffect(() => {
+        
+        // Función auto ejecutable para obtener los productos paginados
+        ( async () => {
+            try {
+                const url = API_URL;
+                const response = await axios.get(`${url}/products/get-all?offset=${offset}&productsTipe=${typeProducts}&stockOrder=${stockOrder}`,{
+                    withCredentials: true,
+                });
+                const data: productsPagination = response.data;
+                if (data.products.length > 0) {
+                    setProductsPerPage(data);
+                    setTotalPages(data.totalPages);
+                    setCuerrentPage(data.currentPage);
+                }
+            } catch (error) {
+                toast.error('Error al obtener los productos', {
+                    description: 'Por favor, inténtelo de nuevo más tarde.',
+                });
+            }
+        })()
+
+    }, [stockOrder]);
+
 
 
     function PaginationProducts(paginaActual: number, action: string) {
@@ -85,6 +113,30 @@ export default function Inventario() {
             }
         }
 
+    }
+
+    async function handleSearchValue() {
+        try {
+                const url = API_URL;
+                const response = await axios.get(`${url}/products/get-all?search=${searchValue}`,{
+                    withCredentials: true,
+                });
+                const data: productsPagination = response.data;
+                console.log(data);
+                if (data.products.length > 0) {
+                    setProductsPerPage(data);
+                    setTotalPages(data.totalPages);
+                    setCuerrentPage(data.currentPage);
+                }else{
+                    toast.error('No se encontraron productos con ese criterio de búsqueda', {
+                        description: 'Por favor, intente con otro término de búsqueda.',
+                    });
+                }
+            } catch (error) {
+                toast.error('Error al obtener los productos', {
+                    description: 'Por favor, inténtelo de nuevo más tarde.',
+                });
+            }
     }
     
 
@@ -124,15 +176,29 @@ export default function Inventario() {
                         col-span-2">
                         <SearchIcon className="h-4 w-4" />
                         <Input
-                        placeholder="Buscar producto por nombre o código de barras" 
-                        className="w-full border-0 h-6 font-semibold" />
+                            onChange={(e) => setSearchValue(e.target.value)}
+                            onKeyDown={(e) => {
+                                if (e.key === 'Enter') {
+                                    refButtonSearch.current?.click();
+                                }
+                            }}
+                            value={searchValue}
+                            placeholder="Buscar producto por nombre o código de barras" 
+                            className="w-full border-0 h-6 font-semibold" />
+                        <Button
+                            className="hover:cursor-pointer"
+                            onClick={handleSearchValue}
+                            ref={refButtonSearch}>
+                            Buscar
+                        </Button>
                     </div>
                     <TableInventory
                         PaginationProducts={PaginationProducts}
                         currentPage={currentPage}
                         productsPerPage={productsPerPage}
                         totalPages={totalPages}
-                        
+                        setOrderProducts={setOrderProducts}
+                        setStockOrder={setStockOrder}
                     />
                 </div>
                 

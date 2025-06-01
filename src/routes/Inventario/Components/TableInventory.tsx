@@ -2,13 +2,16 @@ import { Badge } from "@/components/ui/badge";
 import { Pagination, PaginationContent, PaginationEllipsis, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "@/components/ui/pagination";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import type { productsPagination } from "@/routes/Sales/interfaces/products.interface";
+import { ArrowUpDown, Edit, Trash } from "lucide-react";
 
 
 interface TableInventoryProps {
     productsPerPage: productsPagination | undefined;
     PaginationProducts: Function;
     currentPage: number;
-    totalPages: number
+    totalPages: number;
+    setOrderProducts: React.Dispatch<React.SetStateAction<string>>;
+    setStockOrder: React.Dispatch<React.SetStateAction<string>>;
 }
 
 export default function TableInventory(
@@ -16,7 +19,9 @@ export default function TableInventory(
         productsPerPage,
         PaginationProducts,
         currentPage,
-        totalPages
+        totalPages,
+        setOrderProducts,
+        setStockOrder
     }: TableInventoryProps) {
     
 
@@ -25,11 +30,19 @@ export default function TableInventory(
             <Table className="border-b">
                 <TableHeader>
                     <TableRow className="dark:hover:bg-slate-800">
-                        <TableHead>Nombre</TableHead>
+                        <TableHead 
+                            onClick={() => setOrderProducts(prev => prev === 'asc' ? 'desc' : 'asc')} 
+                            className="flex items-center whitespace-pre hover:cursor-pointer">
+                            Nombre  <ArrowUpDown size={20}/>
+                        </TableHead>
                         <TableHead>Código de barras</TableHead>
                         <TableHead>Precio</TableHead>
                         <TableHead>Precio de Compra</TableHead>
-                        <TableHead>Stock</TableHead>
+                        <TableHead
+                            onClick={() => setStockOrder(prev => prev === 'asc' ? 'desc' : 'asc')}
+                            className="flex items-center whitespace-pre hover:cursor-pointer">
+                            Stock  <ArrowUpDown size={20}/>
+                        </TableHead>
                         <TableHead>Tipo</TableHead>
                         <TableHead>Acciones</TableHead>
                     </TableRow>
@@ -51,9 +64,11 @@ export default function TableInventory(
                                     <TableCell>{skuCode}</TableCell>
                                     <TableCell>${unitPrice}</TableCell>
                                     <TableCell>${purchasePrice}</TableCell>
-                                    <TableCell>{stockQuantity}</TableCell>
+                                    { Number(stockQuantity) <= 3 ? <TableCell><Badge variant={"destructive"}>{stockQuantity}</Badge></TableCell> : <TableCell>{stockQuantity}</TableCell>}
                                     <TableCell>{isByWeight === true ? <Badge>Por peso</Badge> : <Badge>Por unidad</Badge>}</TableCell>
-                                    <TableCell>Editar / Borrar</TableCell>
+                                    <TableCell className="flex items-center whitespace-pre">
+                                        <Edit size={20}/>   |   <Trash className="stroke-red-500" size={20}/>
+                                    </TableCell>
                                 </TableRow>
                             )
                         })
