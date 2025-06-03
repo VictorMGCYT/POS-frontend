@@ -9,6 +9,9 @@ import { useEffect, useRef, useState } from "react";
 import useProduct from "@/hooks/useProduct";
 import type { productsPagination } from "../Sales/interfaces/products.interface";
 import axios from "axios";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Label } from "@radix-ui/react-label";
+import { Switch } from "@/components/ui/switch";
 
 
 export default function Inventario() {
@@ -24,6 +27,7 @@ export default function Inventario() {
     const [stockOrder, setStockOrder] = useState<string>('desc');
     const [searchValue, setSearchValue] = useState<string>('');
     const refButtonSearch = useRef<HTMLButtonElement>(null);
+    const refAddProduct = useRef<HTMLButtonElement>(null);
 
     useEffect(() => {
         refetch(OFFSET_PRODUCTS);
@@ -118,7 +122,7 @@ export default function Inventario() {
     async function handleSearchValue() {
         try {
                 const url = API_URL;
-                const response = await axios.get(`${url}/products/get-all?search=${searchValue}`,{
+                const response = await axios.get(`${url}/products/get-all?search=${searchValue}&orderProducts=${orderProducts}`,{
                     withCredentials: true,
                 });
                 const data: productsPagination = response.data;
@@ -148,10 +152,63 @@ export default function Inventario() {
                         Control de Inventario
                     </h2>
                 </div>
-                <Button className="bg-blue-600 hover:bg-blue-800
+                <Button 
+                    onClick={() => refAddProduct.current?.click()}
+                    className="bg-blue-600 hover:bg-blue-800
                     hover:cursor-pointer dark:text-white">
                     + Agregar Producto
                 </Button>
+                <Dialog>
+                    <DialogTrigger className="hidden"
+                        ref={refAddProduct}>
+                        + Agregar Producto
+                    </DialogTrigger>
+                    <DialogContent>
+                        <DialogHeader>
+                        <DialogTitle>Agregar Producto</DialogTitle>
+                        <DialogDescription>
+                            <form 
+                                className="flex flex-col space-y-2">
+                                <Label>
+                                    Nombre del Producto:
+                                </Label>
+                                <Input/>
+                                <Label>
+                                    Código de Barras:
+                                </Label>
+                                <Input/>
+                                <div className="flex items-center space-x-2 mt-2 mb-2">
+                                    <Switch/>
+                                    <Label>Producto vendido por peso</Label>
+                                </div>
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div className="flex flex-col space-y-2">
+                                        <Label>
+                                            Precio por Unidad:
+                                        </Label>
+                                        <Input type="number" step="0.01" min={0}/>
+                                    </div>
+                                    <div className="flex flex-col space-y-2">
+                                        <Label>
+                                            Precio por Kilo:
+                                        </Label>
+                                        <Input type="number" step="0.01" min={0}/>
+                                    </div>
+                                </div>
+                                <Label>
+                                    Stock Inicial (unidades):
+                                </Label>
+                                <Input type="number" step="1" min={0}/>
+                                <Button 
+                                    className="bg-blue-600 hover:bg-blue-800
+                                    hover:cursor-pointer dark:text-white">
+                                    Guardar
+                                </Button>
+                            </form>
+                        </DialogDescription>
+                        </DialogHeader>
+                    </DialogContent>
+                </Dialog>
             </div>
             <div className="flex w-full p-4">
                 <div className="grid grid-cols-[4fr_1fr] w-full p-4 border rounded-lg gap-4">
