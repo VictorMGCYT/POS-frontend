@@ -19,7 +19,7 @@ import {
     increaseQty, 
     removeFromCart 
 } from "./functions";
-import { handleSendSale } from "./api";
+import { handleSendSale } from "./apiFunctions";
 
 
 

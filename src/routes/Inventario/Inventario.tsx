@@ -9,10 +9,10 @@ import { useEffect, useRef, useState } from "react";
 import useProduct from "@/hooks/useProduct";
 import type { productsPagination } from "../Sales/interfaces/products.interface";
 import axios from "axios";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Label } from "@radix-ui/react-label";
-import { Switch } from "@/components/ui/switch";
-import type { AddProductInterface } from "./Interfaces";
+import type { AddProductInterface } from "./interfaces/Interfaces";
+import { handleAddProduct } from "./apiFunctions";
+import { PaginationProducts } from "./functions";
+import DialogAddProduct from "./Components/DialogAddProduct";
 
 
 export default function Inventario() {
@@ -29,6 +29,7 @@ export default function Inventario() {
     const [searchValue, setSearchValue] = useState<string>('');
     const refButtonSearch = useRef<HTMLButtonElement>(null);
     const refAddProduct = useRef<HTMLButtonElement>(null);
+    const [isLoading, setIsLoading] = useState<boolean>(false);
     const [addProduct, setAddProduct] = useState<AddProductInterface>({
         name: '',
         skuCode: '',
@@ -101,61 +102,30 @@ export default function Inventario() {
 
     }, [stockOrder]);
 
-
-
-    function PaginationProducts(paginaActual: number, action: string) {
-
-        const saltoProductos = OFFSET_PRODUCTS; 
-
-        if (action === 'next') {
-            if (paginaActual >= totalPages) {
-                toast.warning('No hay más productos para mostrar', {
-                    position: 'bottom-left'
-                });
-                return;
-            }
-            setOffset(prev => prev + saltoProductos);
-        } else if (action === 'previous') {
-            if (offset > 0) {
-                setOffset(prev => prev - saltoProductos);
-            }else{
-                toast.warning('No hay más productos para mostrar', {
-                    position: 'bottom-left'
-                });
-                return;
-            }
-        }
-
-    }
-
+    // ** Función para manejar la búsqueda de productos
     async function handleSearchValue() {
         try {
-                const url = API_URL;
-                const response = await axios.get(`${url}/products/get-all?search=${searchValue}&orderProducts=${orderProducts}`,{
-                    withCredentials: true,
-                });
-                const data: productsPagination = response.data;
-                console.log(data);
-                if (data.products.length > 0) {
-                    setProductsPerPage(data);
-                    setTotalPages(data.totalPages);
-                    setCuerrentPage(data.currentPage);
-                }else{
-                    toast.error('No se encontraron productos con ese criterio de búsqueda', {
-                        description: 'Por favor, intente con otro término de búsqueda.',
-                    });
-                }
-            } catch (error) {
-                toast.error('Error al obtener los productos', {
-                    description: 'Por favor, inténtelo de nuevo más tarde.',
+            const url = API_URL;
+            const response = await axios.get(`${url}/products/get-all?search=${searchValue}&orderProducts=${orderProducts}`,{
+                withCredentials: true,
+            });
+            const data: productsPagination = response.data;
+            console.log(data);
+            if (data.products.length > 0) {
+                setProductsPerPage(data);
+                setTotalPages(data.totalPages);
+                setCuerrentPage(data.currentPage);
+            }else{
+                toast.error('No se encontraron productos con ese criterio de búsqueda', {
+                    description: 'Por favor, intente con otro término de búsqueda.',
                 });
             }
+        } catch (error) {
+            toast.error('Error al obtener los productos', {
+                description: 'Por favor, inténtelo de nuevo más tarde.',
+            });
+        }
     }
-
-    function handleAddProduct(e: React.FormEvent<HTMLFormElement>) {
-        e.preventDefault();
-    }
-    
 
     return(
         <>
@@ -171,92 +141,17 @@ export default function Inventario() {
                     hover:cursor-pointer dark:text-white">
                     + Agregar Producto
                 </Button>
-                <Dialog>
-                    <DialogTrigger className="hidden"
-                        ref={refAddProduct}>
-                        + Agregar Producto
-                    </DialogTrigger>
-                    <DialogContent>
-                        <DialogHeader>
-                        <DialogTitle>Agregar Producto</DialogTitle>
-                        {/* El form se dejó afuera del description porque este genera una etiqueta <P></P> 
-                        y no se puede anidar un form dentro de un P */}
-                            <form onSubmit={handleAddProduct}>
-                                <DialogDescription className="flex flex-col space-y-2">
-                                    <Label htmlFor="name">
-                                        Nombre del Producto:
-                                    </Label>
-                                    <Input
-                                        id="name"
-                                        onChange={(e) => setAddProduct({...addProduct, name: e.target.value})}
-                                        value={addProduct.name}
-                                        minLength={3}
-                                        type="text"/>
-                                    <Label htmlFor="sku-code">
-                                        Código de Barras:
-                                    </Label>
-                                    <Input
-                                        id="sku-code"
-                                        onChange={(e) => setAddProduct({...addProduct, skuCode: e.target.value}) }
-                                        value={addProduct.skuCode}
-                                        minLength={3}
-                                        type="text"/>
-                                    <span className="flex items-center space-x-2 mt-2 mb-2">
-                                        <Switch 
-                                            checked={addProduct.isByWeight}
-                                            onCheckedChange={(checked) => setAddProduct({...addProduct, isByWeight: checked})}/>
-                                        <Label>Producto vendido por peso</Label>
-                                    </span>
-                                    <span className="grid grid-cols-2 gap-4">
-                                        <span className="flex flex-col space-y-2">
-                                            <Label htmlFor="unit-price">
-                                                Precio de venta:
-                                            </Label>
-                                            <Input 
-                                                className="text-right"
-                                                id="unit-price"
-                                                onChange={(e) => setAddProduct({...addProduct, unitPrice: e.target.value})}
-                                                value={addProduct.unitPrice}
-                                                type="number" 
-                                                step="0.01" 
-                                                min={0}/>
-                                        </span>
-                                        <span className="flex flex-col space-y-2">
-                                            <Label htmlFor="purchase-price">
-                                                Precio de compra:
-                                            </Label>
-                                            <Input 
-                                                className="text-right"
-                                                id="purchase-price"
-                                                onChange={(e) => setAddProduct({...addProduct, purchasePrice: e.target.value})}
-                                                value={addProduct.purchasePrice}
-                                                type="number" 
-                                                step="0.01" 
-                                                min={0}/>
-                                        </span>
-                                    </span>
-                                    <Label htmlFor="stock-quantity">
-                                        Stock Inicial (unidades):
-                                    </Label>
-                                    <Input 
-                                        className="text-right"
-                                        id="stock-quantity"
-                                        value={addProduct.stockQuantity}
-                                        onChange={(e) => setAddProduct({...addProduct, stockQuantity: e.target.value})}
-                                        type="number" 
-                                        step="1"
-                                        min={0}/>
-                                    <Button 
-                                        type="submit"
-                                        className="bg-blue-600 hover:bg-blue-800
-                                        hover:cursor-pointer dark:text-white">
-                                        Guardar
-                                    </Button>
-                                </DialogDescription>
-                            </form>
-                        </DialogHeader>
-                    </DialogContent>
-                </Dialog>
+                <DialogAddProduct
+                    addProduct={addProduct}
+                    isLoading={isLoading}
+                    refAddProduct={refAddProduct}
+                    setAddProduct={setAddProduct}
+                    setIsLoading={setIsLoading}
+                    refetch={refetch}
+                    // ! Esta función se encarga de manejar el evento de agregar un producto
+                    handleAddProduct={(e: React.FormEvent<HTMLFormElement>) => 
+                        handleAddProduct(e, addProduct, setAddProduct, refetch, setIsLoading)
+                    }/>
             </div>
             <div className="flex w-full p-4">
                 <div className="grid grid-cols-[4fr_1fr] w-full p-4 border rounded-lg gap-4">
@@ -298,7 +193,9 @@ export default function Inventario() {
                         </Button>
                     </div>
                     <TableInventory
-                        PaginationProducts={PaginationProducts}
+                        PaginationProducts={(currentpage: number, action: 'next' | 'previous') => 
+                            PaginationProducts(currentpage, action, totalPages, setOffset, offset)
+                        }
                         currentPage={currentPage}
                         productsPerPage={productsPerPage}
                         totalPages={totalPages}
