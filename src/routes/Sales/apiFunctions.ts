@@ -37,17 +37,19 @@ export async function handleSendSale(
         // el usuario debería existir, pero en caso de que no
         // por si las dudas enviamos una exception
         if(!user) throw new Error();
+        if (sale.paymentMethod === 'Efectivo') {
+            const pagoCon = new Decimal(payment);
+            const totalPago = new Decimal(total);
 
-        const pagoCon = new Decimal(payment);
-        const totalPago = new Decimal(total);
-
-        // Verificamos que se haya ingresado a una cantidad a pagar
-        if (pagoCon.lessThan(totalPago)) {
-            toast.warning("Advertencia", {
-                description: `Ingresa la cantidad con la que pagó el cliente,
-                tiene que ser mayor al total de la compra`
-            })
-            return
+            // Verificamos que se haya ingresado a una cantidad a pagar
+            if (pagoCon.lessThan(totalPago)) {
+                toast.warning("Advertencia", {
+                    description: `Ingresa la cantidad con la que pagó el cliente,
+                    tiene que ser mayor al total de la compra`,
+                    position: 'bottom-left'
+                })
+                return
+            }
         }
         
         // realizamos el envío de la compra al backend

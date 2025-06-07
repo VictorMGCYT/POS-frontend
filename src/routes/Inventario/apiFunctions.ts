@@ -11,6 +11,7 @@ export async function handleAddProduct(
         refetch:  (limit?: number, orderName?: string) => Promise<void>,
         setIsLoading: React.Dispatch<React.SetStateAction<boolean>>
     ) {
+        // prevenimos la recarga del formulario 
         e.preventDefault();
 
         try {

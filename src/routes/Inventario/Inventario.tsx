@@ -2,7 +2,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { SearchIcon } from "lucide-react";
-import TableInventory from "./Components/TableInventory";
+import TableInventory from "./Components/TableInventory/TableInventory";
 import { API_URL, OFFSET_PRODUCTS } from "@/global/variables/variables";
 import { toast } from "sonner";
 import { useEffect, useRef, useState } from "react";
@@ -201,6 +201,7 @@ export default function Inventario() {
                         totalPages={totalPages}
                         setOrderProducts={setOrderProducts}
                         setStockOrder={setStockOrder}
+                        refetch={refetch}
                     />
                 </div>
                 
