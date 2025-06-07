@@ -127,7 +127,7 @@ export default function Sales(){
 
     return(
         <>
-             <div className="grid items-center p-4 grid-cols-1 md:grid-cols-[2fr_1fr] gap-4  w-full">
+            <div className="grid items-center p-4 grid-cols-1 md:grid-cols-[2fr_1fr] gap-4  w-full">
                 <div>
                     <h2 className="text-2xl font-bold">
                         Punto de Venta

@@ -1,4 +1,4 @@
-import { ChartColumnIncreasing, ClipboardList, DoorOpenIcon, Inbox, ShoppingCart, Users2 } from "lucide-react"
+import { ChartColumnIncreasing, ClipboardList, DoorOpenIcon, FileText, Inbox, ShoppingCart, Users2 } from "lucide-react"
 
 import {
   Sidebar,
@@ -38,6 +38,11 @@ const items = [
     title: "Usuarios",
     url: "/usuarios",
     icon: Users2,
+  },
+  {
+    title: "Reportes",
+    url: "/reportes",
+    icon: FileText,
   }
 ]
 
