@@ -62,7 +62,8 @@ export async function handleSendSale(
         })
 
         toast.success("Venta realizada!", {
-            description: 'Se ha realizado la venta con exito'
+            description: 'Se ha realizado la venta con exito',
+            position: 'bottom-left'
         })
 
 
