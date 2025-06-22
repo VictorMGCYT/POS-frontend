@@ -39,6 +39,7 @@ export default function useSales() {
                     description: "Por favor, intenta de nuevo más tarde."
                 })
             }
+            setSales(undefined)
         }
     }
 

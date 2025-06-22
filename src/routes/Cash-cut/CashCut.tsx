@@ -16,11 +16,19 @@ export default function CashCut() {
     // ** Efecto para cargar las fechas de inicio y fin del día
     useEffect(() => {
         if(date){
-            const start = date.setHours(0, 0, 0, 0);
-            const end = date.setHours(23, 59, 59, 999);
+            // generamos la hora en UTC a partir de la fecha que hemos seleccionado
+            // basada en nuestro horario actual
+            const year = date.getUTCFullYear();
+            const month = date.getUTCMonth();
+            const day = date.getDate();
+            // ! Aquí no debería de ser más 6 solamente, porque eso es solo horario centro de mexico
+            const startUTC = new Date(Date.UTC(year, month, day, 6, 0, 0));
+
+            // Sumar 23h 59m 59.999s en milisegundos
+            const endUTC = new Date(startUTC.getTime() + (23 * 60 * 60 * 1000) + (59 * 60 * 1000) + (59 * 1000) + 999);
             
-            setStartDate(new Date(start).toISOString());
-            setEndDate(new Date(end).toISOString());
+            setStartDate(new Date(startUTC).toISOString());
+            setEndDate(new Date(endUTC).toISOString());
         }
     }, [date])
 
@@ -31,9 +39,11 @@ export default function CashCut() {
         }
     }, [startDate, endDate]);
 
+    // ** efecto solo para ver los items obtenidos:
     useEffect(() => {
-        console.log(sales);
+        console.log(`cantidad de ventas :${sales?.totalItems}`)
     }, [sales])
+
     return(
         <>
             <div className="grid items-center p-4 grid-cols-1 md:grid-cols-[2fr_1fr] gap-4  w-full">
@@ -58,9 +68,17 @@ export default function CashCut() {
                         <CardAction><CreditCard size={20}/></CardAction>
                     </CardHeader>
                     <CardContent>
-                        <p className="text-4xl font-bold">
-                            ${sales?.resul.totalProfit}
-                        </p>
+                        {
+                            sales?.totalItems !== undefined 
+                            ? 
+                            <p className="text-4xl font-bold">
+                                ${sales.resul.totalProfit}
+                            </p>
+                            : 
+                            <p className="text-gray-500">
+                                No hay nada por mostrar
+                            </p>
+                        }
                     </CardContent>
                     <CardFooter>
                         <p className="text-gray-500 text-sm">
@@ -75,13 +93,21 @@ export default function CashCut() {
                         <CardAction><DollarSign size={20}/></CardAction>
                     </CardHeader>
                     <CardContent>
-                        <p className="text-2xl font-bold">
-                            ${sales?.resul.totalAmount}
-                        </p>
+                        {
+                            sales?.totalItems !== undefined 
+                            ? 
+                            <p className="text-2xl font-bold">
+                                ${sales.resul.totalAmount}
+                            </p>
+                            : 
+                            <p className="text-gray-500">
+                                No hay nada por mostrar
+                            </p>
+                        }
                     </CardContent>
                     <CardFooter>
                         <p className="text-gray-500 text-sm">
-                            {sales?.resul.totalSales} ventas realizadas
+                            {sales?.resul.totalSales ?? 0} ventas realizadas
                         </p>
                     </CardFooter>
                 </Card>
@@ -91,13 +117,21 @@ export default function CashCut() {
                         <CardAction><BanknoteIcon size={20}/></CardAction>
                     </CardHeader>
                     <CardContent>
-                        <p className="text-2xl font-bold">
-                            ${sales?.resul.totalCash}
-                        </p>
+                        {
+                            sales?.totalItems !== undefined 
+                            ? 
+                            <p className="text-2xl font-bold">
+                                ${sales.resul.totalCash}
+                            </p>
+                            : 
+                            <p className="text-gray-500">
+                                No hay nada por mostrar
+                            </p>
+                        }
                     </CardContent>
                     <CardFooter>
                         <p className="text-gray-500 text-sm">
-                            {sales?.resul.totalSalesCash} ventas realizadas
+                            {sales?.resul.totalSalesCash ?? 0} ventas realizadas
                         </p>
                     </CardFooter>
                 </Card>
@@ -107,13 +141,21 @@ export default function CashCut() {
                         <CardAction><CreditCard size={20}/></CardAction>
                     </CardHeader>
                     <CardContent>
-                        <p className="text-2xl font-bold">
-                            ${sales?.resul.totalCard}
-                        </p>
+                        {
+                            sales?.totalItems !== undefined 
+                            ? 
+                            <p className="text-2xl font-bold">
+                                ${sales.resul.totalCard}
+                            </p>
+                            : 
+                            <p className="text-gray-500">
+                                No hay nada por mostrar
+                            </p>
+                        }
                     </CardContent>
                     <CardFooter>
                         <p className="text-gray-500 text-sm">
-                            {sales?.resul.totalSalesCard} ventas realizadas
+                            {sales?.resul.totalSalesCard ?? 0} ventas realizadas
                         </p>
                     </CardFooter>
                 </Card>

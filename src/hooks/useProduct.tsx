@@ -16,7 +16,7 @@ export default function useProduct() {
                 withCredentials: true
             });
             setProducts(response.data);
-        } catch (error) {
+        } catch (error: any) {
             // TODO validar mejor los errores
             console.log(error)
         }

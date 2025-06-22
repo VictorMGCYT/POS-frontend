@@ -77,9 +77,21 @@ export async function handleSendSale(
             saleItems: []
         })
 
-    } catch (error) {
-        toast.error("Error", {
-            description: 'No se pudo completar la venta, intentalo de nuevo'
-        })
+    } catch (error: any) {
+        if(axios.isAxiosError(error)){
+            if(error.response){
+                if (error.response.status === 400) {
+                    toast.error("Error", {
+                        description: 'La venta debe de contener al menos un producto',
+                        position: 'bottom-left'
+                    })
+                }
+            }
+        } else {
+            toast.error("Error", {
+                description: 'No se pudo completar la venta, intentalo de nuevo',
+                position: 'bottom-left'
+            })
+        }
     }
 }
