@@ -18,7 +18,6 @@ export default function useProduct() {
             setProducts(response.data);
         } catch (error: any) {
             // TODO validar mejor los errores
-            console.log(error)
         }
     }, [url])
 

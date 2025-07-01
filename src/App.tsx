@@ -5,6 +5,7 @@ import Sales from "./routes/Sales/Sales";
 import Inventario from "./routes/Inventario/Inventario";
 import ProtectRoutes from "./ProtectedRoutes";
 import CashCut from "./routes/Cash-cut/CashCut";
+import UsersModule from "./routes/Users/Users";
 
 function App() {
 
@@ -17,6 +18,9 @@ function App() {
         <Route path="ventas" element={<Sales/>}/>
         <Route path="inventario" element={<ProtectRoutes permitedRole="admin"><Inventario/></ProtectRoutes>}/>
         <Route path="corte-de-caja" element={<CashCut/>}/>
+        <Route path="usuarios" element={<ProtectRoutes permitedRole="admin"><UsersModule/></ProtectRoutes>}/>
+        <Route path="reportes" element={<ProtectRoutes permitedRole="admin"><CashCut/></ProtectRoutes>}/>
+
       </Route>
       
     </Routes>
