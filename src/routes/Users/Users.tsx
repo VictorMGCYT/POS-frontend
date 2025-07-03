@@ -9,6 +9,11 @@ import { useUsers } from "@/hooks/useUsers";
 import { Label } from "@radix-ui/react-label";
 import { Edit, Trash } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
+import type { UserDataInterface } from "./interfaces";
+import { userShema } from "./schemas";
+import { toast } from "sonner";
+import axios from "axios";
+import { API_URL } from "@/global/variables/variables";
 
 
 
@@ -16,7 +21,7 @@ export default function UsersModule(){
 
     const {users, fetchUsers} = useUsers();
     const refAddUser = useRef<HTMLButtonElement>(null);
-    const [addUser, setAddUser] = useState({
+    const [addUser, setAddUser] = useState<UserDataInterface>({
         username: "",
         firstName: "",
         paternalSurname: "",
@@ -31,10 +36,65 @@ export default function UsersModule(){
         fetchUsers();
     }, [])
 
-    // Función para manejar el envío del formulario de agregar usuario
-    const handleAddUser = (e: React.FormEvent<HTMLFormElement>) => {
+    // ! Función para manejar el envío del formulario de agregar usuario
+    const handleAddUser = async (e: React.FormEvent<HTMLFormElement>) => {
+        // Prevenimos el comportamiento por defecto del formulario
         e.preventDefault();
-        console.log("Datos del nuevo usuario:", addUser);
+        try {
+            
+            const result = userShema.safeParse(addUser);
+
+            if (!result.success) {
+                // Hay errores de validación
+                result.error.errors.forEach(err => {
+                    // Puedes mostrar los mensajes con toast o como prefieras
+                    toast.error('Error', {
+                        description: err.message,
+                    });
+                });
+                return;
+            }
+
+            const url = API_URL;
+            await axios.post(`${url}/auth/create`, {
+                username: addUser.username,
+                firstName: addUser.firstName,
+                paternalSurname: addUser.paternalSurname,
+                maternalSurname: addUser.maternalSurname,
+                password: addUser.password,
+                role: addUser.role
+            },{
+                withCredentials: true
+            })
+
+            toast.success("Usuario creado exitosamente", {
+                description: "El usuario ha sido creado correctamente.",
+            });
+            // Volvemos a cargar los usuarios
+            fetchUsers();   
+            // Limpiamos el formulario
+            setAddUser({
+                username: "",
+                firstName: "",
+                paternalSurname: "",
+                maternalSurname: "",
+                password: "",
+                confirmPassword: "",
+                role: "user"
+            });
+        } catch (error) {
+            if (axios.isAxiosError(error)) {
+                if(error.status === 400){
+                    toast.error("Error al crear el usuario", {
+                        description: "El nombre de usuario ya se encuntra en uso.",
+                    });
+                } else {
+                    toast.error("Error al crear el usuario", {
+                        description: "Ha ocurrido un error al crear el usuario. Por favor, inténtalo de nuevo más tarde.",
+                    });
+                }
+            }
+        }
     }
 
     return(
@@ -142,7 +202,7 @@ export default function UsersModule(){
                             <Label htmlFor="role" className="col-span-2">
                                 Rol:
                             </Label>
-                            <Select onValueChange={(value) => setAddUser({ ...addUser, role: value }) }>
+                            <Select onValueChange={(value) => setAddUser({ ...addUser, role: value as "user" | "admin"}) }>
                                 <SelectTrigger className="col-span-2 w-full">
                                     <SelectValue placeholder="user" />
                                 </SelectTrigger>
