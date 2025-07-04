@@ -1,19 +1,14 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { capitalizeWords } from "@/global/functions/capitalizeWords";
 import { useUsers } from "@/hooks/useUsers";
-import { Label } from "@radix-ui/react-label";
-import { Edit, Trash } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import type { UserDataInterface } from "./interfaces";
 import { userShema } from "./schemas";
 import { toast } from "sonner";
 import axios from "axios";
 import { API_URL } from "@/global/variables/variables";
+import DialogAddUser from "./components/DialogAddUser";
+import TableUsers from "./components/TableUsers";
 
 
 
@@ -46,11 +41,13 @@ export default function UsersModule(){
 
             if (!result.success) {
                 // Hay errores de validación
-                result.error.errors.forEach(err => {
-                    // Puedes mostrar los mensajes con toast o como prefieras
-                    toast.error('Error', {
-                        description: err.message,
-                    });
+                result.error.errors.forEach((err, index) => {
+                    // Mostrar solo un error
+                    if(index === 0) {
+                        toast.error("Error al crear el usuario", {
+                            description: err.message,
+                        });
+                    }
                 });
                 return;
             }
@@ -112,115 +109,13 @@ export default function UsersModule(){
                     Agregar Usuario
                 </Button>
 
-                <Dialog>
-                    <DialogTrigger
-                        className="hidden"
-                        ref={refAddUser}>
-                        Open
-                    </DialogTrigger>
-                    <DialogContent>
-                        <DialogHeader>
-                        <DialogTitle>Agregar Usuario</DialogTitle>
-                        <DialogDescription>
-                            Completa los campos para agregar un nuevo usuario.
-                        </DialogDescription>
-                        </DialogHeader>
-                        <form 
-                            onSubmit={(e) => handleAddUser(e)}
-                            className="grid gap-2 grid-cols-2">
-                             <Label htmlFor="username">
-                                Nombre de Usuario:
-                            </Label>
-                            <Label htmlFor="first-name">
-                                Nombre:
-                            </Label>
-
-                            <Input
-                                id="username"
-                                onChange={(e) => setAddUser({ ...addUser, username: e.target.value })}
-                                value={addUser.username}
-                                minLength={3}
-                                maxLength={20}
-                                type="text"
-                            />
-                            <Input
-                                id="first-name"
-                                onChange={(e) => setAddUser({ ...addUser, firstName: e.target.value })}
-                                value={addUser.firstName}
-                                minLength={3}
-                                maxLength={40}
-                                type="text"
-                            />
-
-                            <Label htmlFor="paternal-surname">
-                                Apellido Paterno:
-                            </Label>
-                            <Label htmlFor="maternal-surname">
-                                Apellido Materno:
-                            </Label>
-                            <Input
-                                id="paternal-surname"
-                                onChange={(e) => setAddUser({ ...addUser, paternalSurname: e.target.value })}
-                                value={addUser.paternalSurname}
-                                minLength={3}
-                                maxLength={20}
-                                type="text"
-                            />
-                            <Input
-                                id="maternal-surname"
-                                onChange={(e) => setAddUser({ ...addUser, maternalSurname: e.target.value })}
-                                value={addUser.maternalSurname}
-                                minLength={3}
-                                maxLength={20}
-                                type="text"
-                            />
-
-                            <Label className="col-span-2" htmlFor="password">
-                                Contraseña:
-                            </Label>
-                            <Input
-                                className="col-span-2"
-                                id="password"
-                                onChange={(e) => setAddUser({ ...addUser, password: e.target.value })}
-                                value={addUser.password}
-                                minLength={6}
-                                maxLength={40}
-                                type="password"
-                            />
-                            <Label className="col-span-2" htmlFor="confirm-password">
-                                Confirmar Contraseña:
-                            </Label>
-                            <Input
-                                className="col-span-2"
-                                id="confirm-password"
-                                onChange={(e) => setAddUser({ ...addUser, confirmPassword: e.target.value })}
-                                value={addUser.confirmPassword}
-                                minLength={6}
-                                maxLength={40}
-                                type="password"
-                            />
-                            <Label htmlFor="role" className="col-span-2">
-                                Rol:
-                            </Label>
-                            <Select onValueChange={(value) => setAddUser({ ...addUser, role: value as "user" | "admin"}) }>
-                                <SelectTrigger className="col-span-2 w-full">
-                                    <SelectValue placeholder="user" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value="user">user</SelectItem>
-                                    <SelectItem value="admin">admin</SelectItem>
-                                </SelectContent>
-                            </Select>
-
-                            <Button 
-                                type="submit"
-                                className="bg-blue-600 hover:bg-blue-800 text-white
-                                col-span-2 mt-4 hover:cursor-pointer">
-                                Crear Usuario
-                            </Button>
-                        </form>
-                    </DialogContent>
-                </Dialog>
+                {/* diálogo de agregar usuario */}
+                <DialogAddUser
+                    refAddUser={refAddUser}
+                    addUser={addUser}
+                    setAddUser={setAddUser}
+                    handleAddUser={handleAddUser}
+                />
                 
             </div>
             {/* Card de usuarios */}
@@ -234,53 +129,10 @@ export default function UsersModule(){
                     </CardHeader>
                     <CardContent>
                         
-                        <Table>
-                            <TableHeader>
-                                <TableRow>
-                                    <TableHead>
-                                        Nombre
-                                    </TableHead>
-                                    <TableHead>
-                                        Nombre de Usuario
-                                    </TableHead>
-                                    <TableHead>
-                                        Rol
-                                    </TableHead>
-                                    <TableHead>
-                                        Acciones
-                                    </TableHead>
-                                </TableRow>
-                            </TableHeader>
-
-                            <TableBody>                                
-                                {
-                                    users.map((user) => {
-                                        
-                                        const fullName = `${user.firstName} ${user.paternalSurname} ${user.maternalSurname}`;
-                                        const formattedName = capitalizeWords(fullName);
-
-                                        return (
-                                            <TableRow key={user.id}>
-                                                <TableCell>
-                                                    {
-                                                        formattedName
-                                                    }
-                                                </TableCell>
-                                                <TableCell>
-                                                    {user.username}
-                                                </TableCell>
-                                                <TableCell>
-                                                    {user.role}
-                                                </TableCell>
-                                                <TableCell className="flex items-center whitespace-pre">
-                                                    <Edit className="hover:cursor-pointer" size={20}/>   |   <Trash className="stroke-red-500 hover:cursor-pointer" size={20}/>
-                                                </TableCell>
-                                            </TableRow>
-                                        )
-                                    })
-                                }
-                            </TableBody>
-                        </Table>
+                        {/* Tabla con los usuario */}
+                        <TableUsers
+                            users={users}
+                        />
 
                     </CardContent>
                 </Card>

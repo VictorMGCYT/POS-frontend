@@ -3,12 +3,14 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import React, { useState } from "react"
-import { handleErrors, validateLogin } from "./validateData"
+import { handleErrors } from "./functions"
 import axios from 'axios'
 import { API_URL } from "@/global/variables/variables"
 import { useNavigate } from "react-router"
 import { useTheme } from "@/hooks/useTheme"
 import { useUserStore } from "@/global/states/userStore"
+import { loginSchema } from "./schemas"
+import { toast } from "sonner"
 
 
 
@@ -25,10 +27,21 @@ function Login() {
   async function handleSubmit(e: React.FormEvent){
     e.preventDefault();
 
-    // función para validar los datos, está en validateData.ts
-    const isValid = validateLogin(loginData);
+    // esquema para validar los datos del login
+    const result = loginSchema.safeParse(loginData);
 
-    if(!isValid) return;
+    if(!result.success){
+      result.error.errors.forEach((err, index) => {
+        // Mostrar solo un error
+        if(index === 0) {
+          toast.error("Error", {
+            description: err.message,
+          })
+        }
+      })
+      return;
+    }
+
 
     try {
       const url = API_URL;

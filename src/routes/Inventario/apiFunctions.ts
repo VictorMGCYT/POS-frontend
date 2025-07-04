@@ -1,8 +1,8 @@
 import axios from "axios";
-import { validateDataProduct } from "./functions";
 import { toast } from "sonner";
 import type { AddProductInterface } from "./interfaces/Interfaces";
 import { API_URL, OFFSET_PRODUCTS } from "@/global/variables/variables";
+import { addProductSchema } from "./schemas";
 
 export async function handleAddProduct(
         e: React.FormEvent<HTMLFormElement>,
@@ -17,9 +17,21 @@ export async function handleAddProduct(
         try {
             const { name, skuCode, unitPrice, purchasePrice, stockQuantity, isByWeight } = addProduct;
 
-            const validate = validateDataProduct(addProduct);
-            if (validate) return; // Si hay un error en la validación, no continuamos
-            
+            const resul = addProductSchema.safeParse(addProduct);
+
+            if (!resul.success) {
+                // Hay errores de validación
+                resul.error.errors.forEach((err, index) => {
+                    // Mostrar solo un error
+                    if (index === 0) {
+                        toast.error('Error al agregar el producto', {
+                            description: err.message,
+                        });
+                    }
+                });
+                return;
+            }
+
             setIsLoading(true);
             const url = API_URL;
             await axios.post(`${url}/products/create`, {

@@ -55,6 +55,11 @@ export default function DialogAddProduct({
                         </Label>
                         <Input
                             id="sku-code"
+                            onKeyDown={(key) => {
+                                if (key.key === 'Enter') {
+                                    key.preventDefault(); // Evita el envío del formulario al presionar Enter
+                                }
+                            }}
                             onChange={(e) => setAddProduct({...addProduct, skuCode: e.target.value}) }
                             value={addProduct.skuCode}
                             minLength={3}
