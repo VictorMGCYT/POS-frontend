@@ -4,3 +4,5 @@ export const API_URL: string = import.meta.env.VITE_API_URL ?? 'http://localhost
 
 // variable para la cantidad de productos por página
 export const OFFSET_PRODUCTS: number = 50;
+
+export const LIMIT_PRODUCTS_SALE: number = 10;

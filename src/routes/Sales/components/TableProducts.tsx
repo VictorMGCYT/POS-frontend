@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import type { productsListInteface } from "../interfaces/products.interface";
+import { LIMIT_PRODUCTS_SALE } from "@/global/variables/variables";
 
 interface PropsTableProducts {
     stockProducts: productsListInteface[];
@@ -37,8 +38,11 @@ export default function TableProducts({
             </TableHeader>
             <TableBody>
                 {   
-                    stockProducts.map( (product) => {
+                    // Limitar renderizado de productos a un máximo de LIMIT_PRODUCTS_SALE
+                    // Esto es para evitar que se rendericen demasiados productos en la tabla de ventas 
+                    stockProducts.slice(0, LIMIT_PRODUCTS_SALE).map( (product) => {
                         const {id, name, unitPrice, stockQuantity, isByWeight} = product;
+                       
                         return(
                             <TableRow key={id} className="dark:hover:bg-slate-900">
                                 <TableCell className="max-w-[120px] font-medium truncate">

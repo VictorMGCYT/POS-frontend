@@ -20,6 +20,7 @@ import {
     removeFromCart 
 } from "./functions";
 import { handleSendSale } from "./apiFunctions";
+import { LIMIT_PRODUCTS_SALE } from "@/global/variables/variables";
 
 
 
@@ -70,12 +71,12 @@ export default function Sales(){
         if (searchTerm.length === 0) {
             setStockProducts(stockData); 
         } else {
-            const filteredProducts = stockData.filter(product => {
+            const filteredProducts = stockData.filter((product) => {                
                 return (
                     product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                     product.skuCode.toUpperCase().includes(searchTerm.toUpperCase())
                 );
-            });
+            }).slice(0, LIMIT_PRODUCTS_SALE); // Limitar a 10 productos
 
             setStockProducts(filteredProducts);
         }
