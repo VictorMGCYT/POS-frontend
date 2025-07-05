@@ -19,3 +19,15 @@ export const userShema = z.object({
         message: "Las contraseñas no coinciden.",
         path: ["confirmPassword"],
     })
+
+
+export const userEditSchema = z.object({
+    id: z.string().uuid("El ID del usuario debe ser un UUID válido."),
+    username: z.string().min(3, "El nombre de usuario debe contener al menos 3 caracteres."),
+    firstName: z.string().min(3, "El nombre debe contener al menos 3 caracteres."),
+    paternalSurname: z.string().min(3, "El apellido paterno debe contener al menos 3 caracteres."),
+    maternalSurname: z.string().min(3, "El apellido materno debe contener al menos 3 caracteres."),
+    role: z.enum(["user", "admin"], {
+        errorMap: () => ({ message: "El rol debe ser 'user' o 'admin'." })
+    })
+})

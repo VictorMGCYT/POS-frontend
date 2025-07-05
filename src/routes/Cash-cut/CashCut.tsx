@@ -1,12 +1,14 @@
 import { CalendarSelect } from "@/components/ui/calendar-select";
 import { Card, CardAction, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import useSales from "@/hooks/useSales";
+import useUser from "@/hooks/useUser";
 import { BanknoteIcon, CreditCard, DollarSign } from "lucide-react";
 import { useEffect, useState } from "react";
 
 
 
 export default function CashCut() {
+    useUser();
     const {sales, refetch} = useSales();
     const [date, setDate] = useState<Date | undefined>(new Date());
     // Estados de fechas en formato UTC, o sea +6:00 horas que es la zona horaria de México

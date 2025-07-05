@@ -69,6 +69,7 @@ export default function UsersModule(){
                         {/* Tabla con los usuario */}
                         <TableUsers
                             users={users}
+                            fetchUsers={fetchUsers}
                         />
 
                     </CardContent>
