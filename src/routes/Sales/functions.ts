@@ -28,7 +28,8 @@ export function addToCart(
 
     if(Number(product.stockQuantity) <= 0){
         toast.error('Advertencia', {
-            description: 'No se cuenta con stock suficiente'
+            description: 'No se cuenta con stock suficiente',
+            position: 'bottom-left'
         })
     }else {
         // Si ya existe, sumamos 1 a la cantidad
@@ -85,7 +86,8 @@ export function increaseQty(
 
     if (Number(product?.stockQuantity) <= 0) {
         toast.error('Advertencia', {
-            description: 'No se cuenta con stock suficiente'
+            description: 'No se cuenta con stock suficiente',
+            position: 'bottom-left'
         })
     } else{
         setSale(prev => ({
@@ -198,7 +200,8 @@ export function handleAddByWeight(
 
     if (quantity > Number(product.stockQuantity)) {
         toast.error('Advertencia', {
-            description: 'La cantidad ingresada supera el stocks'
+            description: 'La cantidad ingresada supera el stocks',
+            position: 'bottom-left'
         })
     } else{
         if (quantity > 0) {
@@ -206,7 +209,8 @@ export function handleAddByWeight(
             setWeightInput(""); // Limpia el input después
         } else {
             toast.error('Advertencia', {
-                description: 'El dato debe ser mayor a 0'
+                description: 'El dato debe ser mayor a 0',
+                position: 'bottom-left'
             });
         }
     }

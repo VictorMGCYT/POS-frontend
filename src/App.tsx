@@ -6,6 +6,7 @@ import Inventario from "./routes/Inventario/Inventario";
 import ProtectRoutes from "./ProtectedRoutes";
 import CashCut from "./routes/Cash-cut/CashCut";
 import UsersModule from "./routes/Users/Users";
+import { Reports } from "./routes/Reports/Reposts";
 
 function App() {
 
@@ -19,7 +20,7 @@ function App() {
         <Route path="inventario" element={<ProtectRoutes permitedRole="admin"><Inventario/></ProtectRoutes>}/>
         <Route path="corte-de-caja" element={<CashCut/>}/>
         <Route path="usuarios" element={<ProtectRoutes permitedRole="admin"><UsersModule/></ProtectRoutes>}/>
-        <Route path="reportes" element={<ProtectRoutes permitedRole="admin"><CashCut/></ProtectRoutes>}/>
+        <Route path="reportes" element={<ProtectRoutes permitedRole="admin"><Reports/></ProtectRoutes>}/>
 
       </Route>
       

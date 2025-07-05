@@ -18,13 +18,17 @@ export default function CashCut() {
     // ** Efecto para cargar las fechas de inicio y fin del día
     useEffect(() => {
         if(date){
+            // Diferencia en minutos entre local y UTC (ejemplo: -360 para CDMX)
+            const offsetMinutes = date.getTimezoneOffset();
+            // Convertimos a horas (ejemplo: -360 / 60 = -6)
+            const offsetHours = offsetMinutes / 60;
             // generamos la hora en UTC a partir de la fecha que hemos seleccionado
             // basada en nuestro horario actual
             const year = date.getUTCFullYear();
             const month = date.getUTCMonth();
             const day = date.getDate();
             // ! Aquí no debería de ser más 6 solamente, porque eso es solo horario centro de mexico
-            const startUTC = new Date(Date.UTC(year, month, day, 6, 0, 0));
+            const startUTC = new Date(Date.UTC(year, month, day, offsetHours, 0, 0));
 
             // Sumar 23h 59m 59.999s en milisegundos
             const endUTC = new Date(startUTC.getTime() + (23 * 60 * 60 * 1000) + (59 * 60 * 1000) + (59 * 1000) + 999);
