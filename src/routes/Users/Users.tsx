@@ -3,12 +3,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { useUsers } from "@/hooks/useUsers";
 import { useEffect, useRef, useState } from "react";
 import type { UserDataInterface } from "./interfaces";
-import { userShema } from "./schemas";
-import { toast } from "sonner";
-import axios from "axios";
-import { API_URL } from "@/global/variables/variables";
 import DialogAddUser from "./components/DialogAddUser";
 import TableUsers from "./components/TableUsers";
+import { handleAddUser } from "./apiFunctions";
 
 
 
@@ -31,69 +28,7 @@ export default function UsersModule(){
         fetchUsers();
     }, [])
 
-    // ! Función para manejar el envío del formulario de agregar usuario
-    const handleAddUser = async (e: React.FormEvent<HTMLFormElement>) => {
-        // Prevenimos el comportamiento por defecto del formulario
-        e.preventDefault();
-        try {
-            
-            const result = userShema.safeParse(addUser);
-
-            if (!result.success) {
-                // Hay errores de validación
-                result.error.errors.forEach((err, index) => {
-                    // Mostrar solo un error
-                    if(index === 0) {
-                        toast.error("Error al crear el usuario", {
-                            description: err.message,
-                        });
-                    }
-                });
-                return;
-            }
-
-            const url = API_URL;
-            await axios.post(`${url}/auth/create`, {
-                username: addUser.username,
-                firstName: addUser.firstName,
-                paternalSurname: addUser.paternalSurname,
-                maternalSurname: addUser.maternalSurname,
-                password: addUser.password,
-                role: addUser.role
-            },{
-                withCredentials: true
-            })
-
-            toast.success("Usuario creado exitosamente", {
-                description: "El usuario ha sido creado correctamente.",
-            });
-            // Volvemos a cargar los usuarios
-            fetchUsers();   
-            // Limpiamos el formulario
-            setAddUser({
-                username: "",
-                firstName: "",
-                paternalSurname: "",
-                maternalSurname: "",
-                password: "",
-                confirmPassword: "",
-                role: "user"
-            });
-        } catch (error) {
-            if (axios.isAxiosError(error)) {
-                if(error.status === 400){
-                    toast.error("Error al crear el usuario", {
-                        description: "El nombre de usuario ya se encuntra en uso.",
-                    });
-                } else {
-                    toast.error("Error al crear el usuario", {
-                        description: "Ha ocurrido un error al crear el usuario. Por favor, inténtalo de nuevo más tarde.",
-                    });
-                }
-            }
-        }
-    }
-
+    
     return(
         <>
             <div className="grid items-center p-4 grid-cols-1 md:grid-cols-[2fr_1fr] gap-4  w-full">
@@ -114,7 +49,9 @@ export default function UsersModule(){
                     refAddUser={refAddUser}
                     addUser={addUser}
                     setAddUser={setAddUser}
-                    handleAddUser={handleAddUser}
+                    handleAddUser={(e: React.FormEvent<HTMLFormElement>) => 
+                        handleAddUser({e, addUser, setAddUser, fetchUsers})
+                    }
                 />
                 
             </div>
