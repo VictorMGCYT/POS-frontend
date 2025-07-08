@@ -6,7 +6,7 @@ import Inventario from "./routes/Inventario/Inventario";
 import ProtectRoutes from "./ProtectedRoutes";
 import CashCut from "./routes/Cash-cut/CashCut";
 import UsersModule from "./routes/Users/Users";
-import { Reports } from "./routes/Reports/Reposts";
+import { Reports } from "./routes/Reports/Reports";
 
 function App() {
 

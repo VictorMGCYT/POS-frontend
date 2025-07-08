@@ -88,7 +88,7 @@ export function AppSidebar() {
                   <SidebarMenuButton 
                     className={isActive ? 
                       "bg-blue-600 text-white h-9 pl-4 hover:bg-blue-800 hover:text-white" : 
-                      "h-9 pl-4 dark:hover:bg-slate-800"}
+                      "h-9 pl-4 text-gray-500 dark:hover:bg-slate-800 dark:text-slate-500"}
                     asChild>
                     <Link to={item.url}>
                       <item.icon />
