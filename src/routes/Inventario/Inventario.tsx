@@ -164,9 +164,9 @@ export default function Inventario() {
                             <SelectValue placeholder="Seleccione el Tipo" />
                         </SelectTrigger>
                         <SelectContent className="dark:bg-slate-950">
-                            <SelectItem className="hover:cursor-pointer" value="all">Todos</SelectItem>
-                            <SelectItem className="hover:cursor-pointer" value="unit">Por unidad</SelectItem>
-                            <SelectItem className="hover:cursor-pointer" value="weight">Por peso</SelectItem>
+                            <SelectItem className="hover:cursor-pointer hover:dark:bg-slate-900 dark:bg-slate-950" value="all">Todos</SelectItem>
+                            <SelectItem className="hover:cursor-pointer hover:dark:bg-slate-900 dark:bg-slate-950" value="unit">Por unidad</SelectItem>
+                            <SelectItem className="hover:cursor-pointer hover:dark:bg-slate-900 dark:bg-slate-950" value="weight">Por peso</SelectItem>
                         </SelectContent>
                     </Select>
                     {/* Barra de busqueda */}
