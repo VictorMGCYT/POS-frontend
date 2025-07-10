@@ -3,6 +3,7 @@ import { Calendar } from "@/components/ui/calendar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useUserStore } from "@/global/states/userStore";
 import { API_URL } from "@/global/variables/variables";
 import axios from "axios";
 import { CalendarIcon, FileText } from "lucide-react";
@@ -17,7 +18,7 @@ const fetchBestProducts = async (date: Date, period: string): Promise<Blob | und
         const url = API_URL;
         const response = await axios.post(`${url}/reports/best-products`, 
             {
-                username: "Víctor Manuel González Cabrera",
+                username: useUserStore.getState().user?.id || "defaultUser",
 	            daydate: date,
                 period: period// Puedes cambiar esto según el periodo seleccionado
             }, 
@@ -183,8 +184,8 @@ export function Reports(){
                 <Card>
                     <CardHeader>
                         <CardTitle
-                            className="text-3xl font-bold flex gap-2 items-center">
-                            <FileText size={30}/> {selectedReport === "best-products" && "Productos más vendidos"}
+                            className="text-xl font-bold flex gap-2 items-center">
+                            <FileText size={20}/> {selectedReport === "best-products" && "Productos más vendidos"}
                         </CardTitle>
                     </CardHeader>
                     <CardContent>

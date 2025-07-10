@@ -25,6 +25,7 @@ import { LIMIT_PRODUCTS_SALE } from "@/global/variables/variables";
 
 
 export default function Sales(){
+
     // Con nuestro customhook extraemos los productos y su paginación de la base
     const {products, refetch} = useProduct();
     // Ahora con este customhook obtenemos el usuario y lo asignamos a Zustan
@@ -44,7 +45,10 @@ export default function Sales(){
     });
     // Referencia para productos por Peso
     const refInputWeight = useRef<HTMLButtonElement>(null);
-    
+    // ** Estado para el debounce de la búsqueda
+    const [debouncedSearch, setDebouncedSearch] = useState(searchTerm);
+
+
     // ** Efecto para inicializar el ticket de venta
     useEffect(() => {
         refetch();
@@ -66,21 +70,28 @@ export default function Sales(){
         }
     }, [user])
 
-    // ** Efecto para fitlrar los productos
     useEffect(() => {
-        if (searchTerm.length === 0) {
-            setStockProducts(stockData); 
-        } else {
-            const filteredProducts = stockData.filter((product) => {                
-                return (
-                    product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                    product.skuCode.toUpperCase().includes(searchTerm.toUpperCase())
-                );
-            }).slice(0, LIMIT_PRODUCTS_SALE); // Limitar a 10 productos
+        const timeout = setTimeout(() => {
+            setDebouncedSearch(searchTerm);
+        }, 300);
 
-            setStockProducts(filteredProducts);
+        return () => clearTimeout(timeout);
+    }, [searchTerm]);
+
+    useEffect(() => {
+        if (debouncedSearch.length === 0) {
+            setStockProducts(stockData);
+        } else {
+            const filtered = stockData.filter((product) => {
+            return (
+                product.name.toLowerCase().includes(debouncedSearch.toLowerCase()) ||
+                product.skuCode.toUpperCase().includes(debouncedSearch.toUpperCase())
+            );
+            }).slice(0, LIMIT_PRODUCTS_SALE);
+
+            setStockProducts(filtered);
         }
-    }, [searchTerm, stockData]);
+    }, [debouncedSearch, stockData]);
 
     // ** Efecto para ir calculando los totales.
     useEffect(() => {
@@ -112,15 +123,51 @@ export default function Sales(){
 
     // ** función para agregar el producto cuando hay exatamente 1 filtrado
     function handleSearchKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
-        if (e.key === 'Enter' && stockProducts.length === 1) {
-            const productToAdd = stockProducts[0];
+        if (e.key === 'Enter') {
+            // const productToAdd = stockProducts[0];
 
-            if (productToAdd.isByWeight === true) {
-                setTimeout(() => {
-                    refInputWeight.current?.click();
-                }, 10)
-            } else{
-                addToCart(productToAdd, sale, setSale, setStockData, setSearchTerm); 
+            // if (productToAdd.isByWeight === true) {
+            //     setTimeout(() => {
+            //         refInputWeight.current?.click();
+            //     }, 10)
+            // } else{
+            //     addToCart(productToAdd, sale, setSale, setStockData, setSearchTerm); 
+            // }
+            const trimmedSearch = searchTerm.trim();
+
+            // Primero intentamos buscar por código exacto (lectores de barras)
+            const exactMatch = stockData.find(product =>
+                product.skuCode.toUpperCase() === trimmedSearch.toUpperCase()
+            );
+
+            if (exactMatch) {
+                if (exactMatch.isByWeight === true) {
+                    setTimeout(() => {
+                        refInputWeight.current?.click();
+                    }, 10)
+                    return;
+                } else {
+                    addToCart(exactMatch, sale, setSale, setStockData, setSearchTerm);
+                    setSearchTerm('');
+                    return;
+                }
+            }
+
+            // Si no hubo match exacto, buscar por nombre (opcional)
+            const nameMatch = stockData.find(product =>
+                product.name.toLowerCase().includes(trimmedSearch.toLowerCase())
+            );
+
+            if (nameMatch) {
+                if (nameMatch.isByWeight === true) {
+                    setTimeout(() => {
+                        refInputWeight.current?.click();
+                    }, 10)
+                    return;
+                } else {
+                    addToCart(nameMatch, sale, setSale, setStockData, setSearchTerm);
+                    setSearchTerm('');
+                }
             }
         }
     }
