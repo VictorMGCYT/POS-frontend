@@ -39,7 +39,7 @@ export default function TableUsers( TableUsersProps: TableUsersPropsInterface ){
     // ! funciones para abrir los diálogo
     const handleDialogEdit = (user: User) => {
         refEditUser.current?.click();
-        setEditUser(user);
+        setEditUser({...user});
     }
     async function handleDialogDelete(user: User) {
         refDeleteUser.current?.click();

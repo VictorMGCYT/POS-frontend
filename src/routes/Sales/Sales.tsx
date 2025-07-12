@@ -2,7 +2,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Printer, SearchIcon } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import type { productsListInteface } from "./interfaces/products.interface";
 import useProduct from "@/hooks/useProduct";
 import useUser from "@/hooks/useUser";
@@ -32,17 +32,17 @@ export default function Sales(){
     // además de que con el validamos las credenciales e impedimos accesos inautorizados
     const user = useUser();
     const [stockData, setStockData] = useState<productsListInteface[]>([]);
-    const [stockProducts, setStockProducts] = useState<productsListInteface[]>([]);
     const [searchTerm, setSearchTerm] = useState("");
-    const [total, setTotal] = useState('0.00');
-    const [change, setChange] = useState('0.00');
     const [payment, setPayment] = useState('0.00');
-    const [weightInput, setWeightInput] = useState("");
     const [sale, setSale] = useState<SaleInterface>({
         userId: '',
         paymentMethod: 'Efectivo',
         saleItems: []
     });
+    // Este estado es para manejar los productos que son por peso.
+    // Abre un pequeño diálogo para ingresar el peso del producto
+    const [weightInput, setWeightInput] = useState("");
+    
     // Referencia para productos por Peso
     const refInputWeight = useRef<HTMLButtonElement>(null);
     // ** Estado para el debounce de la búsqueda
@@ -59,7 +59,6 @@ export default function Sales(){
         console.log(products)
         if (products && products.products.length > 0) {
             setStockData(products.products);
-            setStockProducts(products.products);
         }
     }, [products])
 
@@ -78,43 +77,40 @@ export default function Sales(){
         return () => clearTimeout(timeout);
     }, [searchTerm]);
 
-    useEffect(() => {
-        if (debouncedSearch.length === 0) {
-            setStockProducts(stockData);
-        } else {
-            const filtered = stockData.filter((product) => {
-            return (
-                product.name.toLowerCase().includes(debouncedSearch.toLowerCase()) ||
-                product.skuCode.toUpperCase().includes(debouncedSearch.toUpperCase())
-            );
-            }).slice(0, LIMIT_PRODUCTS_SALE);
-
-            setStockProducts(filtered);
-        }
-    }, [debouncedSearch, stockData]);
-
-    // ** Efecto para ir calculando los totales.
-    useEffect(() => {
+    //  ** useMemo para calcular el total de la venta
+    const total = useMemo(() => {
         let total = new Decimal(0);
         for (const item of sale.saleItems) {
             const product = stockData.find(prod => prod.id === item.productId);
             if (product) {
                 total = total.plus(new Decimal(item.quantity).mul(new Decimal(product.unitPrice)));
             }
-        }
-        setTotal(total.toFixed(2));
+        };
+        
+        return total.toFixed(2);
     }, [sale])
 
-    // ** Efecto para calcular el cambio
-    useEffect(() => {
+    // ** useMemo para calcular el cambio
+    const change = useMemo(() => {
+        if (payment) {
+            return new Decimal(new Decimal(payment).minus(new Decimal(total))).toFixed(2);
+        }
+        return '0.00';
+    }, [payment, total]);
 
-        if(payment){
-            setChange(new Decimal(new Decimal(payment).minus(new Decimal(total))).toFixed(2))
-        } else{
-            setChange('0.00')
+    // ** useMemo para filtrar los productos según el término de búsqueda
+    const filteredProducts = useMemo(() => {
+        if (debouncedSearch.length === 0) {
+            return stockData;
         }
 
-    },[payment, total])
+        return stockData.filter((product) => {
+            return (
+                product.name.toLowerCase().includes(debouncedSearch.toLowerCase()) ||
+                product.skuCode.toUpperCase().includes(debouncedSearch.toUpperCase())
+            );
+        }).slice(0, LIMIT_PRODUCTS_SALE);
+    }, [debouncedSearch, stockData]);
 
     // ** Función para el cambio de pago
     function handlePaymentChange(value: string) {
@@ -124,15 +120,6 @@ export default function Sales(){
     // ** función para agregar el producto cuando hay exatamente 1 filtrado
     function handleSearchKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
         if (e.key === 'Enter') {
-            // const productToAdd = stockProducts[0];
-
-            // if (productToAdd.isByWeight === true) {
-            //     setTimeout(() => {
-            //         refInputWeight.current?.click();
-            //     }, 10)
-            // } else{
-            //     addToCart(productToAdd, sale, setSale, setStockData, setSearchTerm); 
-            // }
             const trimmedSearch = searchTerm.trim();
 
             // Primero intentamos buscar por código exacto (lectores de barras)
@@ -210,7 +197,7 @@ export default function Sales(){
                         <div className="w-full rounded-md border h-[300px] overflow-y-auto">
                             {/* Subcomponente para generar la tabla con todos los productos */}
                             <TableProducts
-                                stockProducts={stockProducts}
+                                filteredProducts={filteredProducts}
                                 addToCart={(product: productsListInteface, quantity = 1) =>
                                     addToCart(product, sale, setSale, setStockData, setSearchTerm, quantity)
                                 }

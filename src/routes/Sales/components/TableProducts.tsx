@@ -8,7 +8,7 @@ import type { productsListInteface } from "../interfaces/products.interface";
 import { LIMIT_PRODUCTS_SALE } from "@/global/variables/variables";
 
 interface PropsTableProducts {
-    stockProducts: productsListInteface[];
+    filteredProducts: productsListInteface[];
     addToCart: Function,
     weightInput: string;
     setWeightInput: React.Dispatch<React.SetStateAction<string>>;
@@ -17,7 +17,7 @@ interface PropsTableProducts {
 }
 
 export default function TableProducts({
-    stockProducts, 
+    filteredProducts, 
     addToCart, 
     weightInput,
     setWeightInput,
@@ -40,7 +40,7 @@ export default function TableProducts({
                 {   
                     // Limitar renderizado de productos a un máximo de LIMIT_PRODUCTS_SALE
                     // Esto es para evitar que se rendericen demasiados productos en la tabla de ventas 
-                    stockProducts.slice(0, LIMIT_PRODUCTS_SALE).map( (product) => {
+                    filteredProducts.slice(0, LIMIT_PRODUCTS_SALE).map( (product) => {
                         const {id, name, unitPrice, stockQuantity, isByWeight} = product;
                        
                         return(

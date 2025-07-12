@@ -59,7 +59,7 @@ export default function TableInventory(
     // Con esta función seteamos el producto que se va a editar y abrimos el diálogo de edición
     function handleEditProduct(product: AddProductInterface){
         refEditProduct.current?.click();
-        setEditProduct(product);
+        setEditProduct({...product});
     }
 
     // Función para manejar el envío del formulario de edición desde el dialog
