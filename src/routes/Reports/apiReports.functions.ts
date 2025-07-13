@@ -73,8 +73,23 @@ export const fetchNoSales = async (date: Date, period: string): Promise<Blob | u
     }
 };
 
-export const fetchStock = async () => {
-  return [{ nombre: "Producto 7", stock: 50 }, { nombre: "Producto 8", stock: 30 }];
+export const fetchStock = async (): Promise<Blob | undefined> => {
+    try {
+        const response = await axios.post(`${url}/reports/stock`, {
+            userId: useUserStore.getState().user?.id || "defaultUser",
+            daydate: new Date(),
+        },{
+            withCredentials: true,
+            responseType: 'blob'
+        })
+        const data: Blob = response.data;
+        return data
+    } catch (error) {
+        toast.error("Error al generar el reporte de stock.", {
+            description: "Por favor, inténtelo de nuevo más tarde.",
+        });
+        return;
+    }
 };
 
 export const fetchSales = async () => {

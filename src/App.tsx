@@ -7,6 +7,7 @@ import ProtectRoutes from "./ProtectedRoutes";
 import CashCut from "./routes/Cash-cut/CashCut";
 import UsersModule from "./routes/Users/Users";
 import { Reports } from "./routes/Reports/Reports";
+import QrCodeGenrator from "./routes/Qr-Code/QrCodeGenerator";
 
 function App() {
 
@@ -19,9 +20,9 @@ function App() {
         <Route path="ventas" element={<Sales/>}/>
         <Route path="inventario" element={<ProtectRoutes permitedRole="admin"><Inventario/></ProtectRoutes>}/>
         <Route path="corte-de-caja" element={<CashCut/>}/>
-        <Route path="usuarios" element={<ProtectRoutes permitedRole="admin"><UsersModule/></ProtectRoutes>}/>
         <Route path="reportes" element={<ProtectRoutes permitedRole="admin"><Reports/></ProtectRoutes>}/>
-
+        <Route path="generador-qr" element={<ProtectRoutes permitedRole="admin"><QrCodeGenrator/></ProtectRoutes>}/>
+        <Route path="usuarios" element={<ProtectRoutes permitedRole="admin"><UsersModule/></ProtectRoutes>}/>
       </Route>
       
     </Routes>

@@ -1,4 +1,4 @@
-import { ChartColumnIncreasing, ClipboardList, DoorOpenIcon, FileText, Inbox, ShoppingCart, Users2 } from "lucide-react"
+import { ChartColumnIncreasing, ClipboardList, DoorOpenIcon, FileText, Inbox, QrCode, ShoppingCart, Users2 } from "lucide-react"
 
 import {
   Sidebar,
@@ -35,15 +35,20 @@ const items = [
     icon: ChartColumnIncreasing,
   },
   {
+    title: "Reportes",
+    url: "/reportes",
+    icon: FileText,
+  },
+  {
+    title: "Generador de QR",
+    url: "/generador-qr",
+    icon: QrCode,
+  },
+  {
     title: "Usuarios",
     url: "/usuarios",
     icon: Users2,
   },
-  {
-    title: "Reportes",
-    url: "/reportes",
-    icon: FileText,
-  }
 ]
 
 export function AppSidebar() {

@@ -67,8 +67,8 @@ export default function CashCut() {
                     setDate={setDate}
                 />
             </div>
-            <div className="grid p-4 grid-cols-[1fr_1fr_1fr] gap-4">
-                <Card className="row-span-2">
+            <div className="grid p-4 grid-cols-1 md:grid-cols-[1fr_1fr_1fr] gap-4">
+                <Card className="md:row-span-2">
                     <CardHeader>
                         <CardTitle>Ganancias totales</CardTitle>
                         <CardAction><CreditCard size={20}/></CardAction>
@@ -93,7 +93,7 @@ export default function CashCut() {
                         </p>
                     </CardFooter>
                 </Card>
-                <Card className="gap-0 col-span-2">
+                <Card className="gap-0 md:col-span-2">
                     <CardHeader>
                         <CardTitle>Total Vendido</CardTitle>
                         <CardAction><DollarSign size={20}/></CardAction>

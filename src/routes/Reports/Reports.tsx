@@ -6,7 +6,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { CalendarIcon, FileText } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
-import { fetchBestProducts, fetchNoSales, fetchWorstProducts } from "./apiReports.functions";
+import { fetchBestProducts, fetchNoSales, fetchStock, fetchWorstProducts } from "./apiReports.functions";
 
 
 
@@ -29,8 +29,8 @@ export function Reports(){
         "best-products": async (date: Date, period: string): Promise<Blob | undefined> => await fetchBestProducts(date, period),
         "worst-products": async (date: Date, period: string): Promise<Blob | undefined> => await fetchWorstProducts(date, period),
         "no-sales": async (date: Date, period: string): Promise<Blob | undefined> => await fetchNoSales(date, period),
-        // "stock-report": fetchStock,
-        // "sales-report": fetchSales,
+        "stock-report": async (): Promise<Blob | undefined> => await fetchStock(),
+        // "earns-report": fetchSales,
     }
 
     // efecto para generar la url del PDF y mostrarlo en pantalla
@@ -68,7 +68,7 @@ export function Reports(){
                 </div>
             </div>
 
-           <div className="grid pl-4 pr-4 pt-4 grid-cols-2 gap-4 w-full">
+           <div className="grid pl-4 pr-4 pt-4 grid-cols-1 lg:grid-cols-[1fr_2fr] gap-4 w-full">
                <Select 
                     defaultValue={selectedReport}
                     onValueChange={(value) => setSelectedReport(value)}>
@@ -98,17 +98,17 @@ export function Reports(){
                         </SelectItem>
                         <SelectItem 
                             className="dark:hover:bg-slate-900 dark:bg-slate-950"
-                            value="sales-report">
-                                Reporte de Ventas
+                            value="earns-report">
+                                Reporte de Ganancias
                         </SelectItem>
                     </SelectContent>
                 </Select>
 
-                <div className="flex items-center justify-end gap-4">
+                <div className="grid grid-cols-1 justify-end gap-2 lg:grid-cols-[1fr_1fr_1fr]">
                     <Select
                         onValueChange={(value) => setPeriod(value)}
                         defaultValue={period}>
-                        <SelectTrigger className="w-[180px]">
+                        <SelectTrigger className="w-full">
                             <SelectValue placeholder="Periodo" />
                         </SelectTrigger>
                         <SelectContent>
@@ -122,7 +122,7 @@ export function Reports(){
                             <Button
                             variant="outline"
                             data-empty={!date}
-                            className="data-[empty=true]:text-muted-foreground w-[280px] justify-start text-left font-normal"
+                            className="data-[empty=true]:text-muted-foreground w-full justify-start text-left font-normal"
                             >
                             <CalendarIcon />
                                 {date ? date.toLocaleDateString() : <span>Selecciona una Fecha</span>}
@@ -145,7 +145,11 @@ export function Reports(){
                     <CardHeader>
                         <CardTitle
                             className="text-xl font-bold flex gap-2 items-center">
-                            <FileText size={20}/> {selectedReport === "best-products" && "Productos más vendidos"}
+                            <FileText size={20}/> 
+                            {selectedReport === "best-products" && "Productos más vendidos"}
+                            {selectedReport === "worst-products" && "Productos menos vendidos"}
+                            {selectedReport === "no-sales" && "Productos sin ventas"}
+                            {selectedReport === "stock-report" && "Stock del inventario"}
                         </CardTitle>
                     </CardHeader>
                     <CardContent>
