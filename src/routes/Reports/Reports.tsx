@@ -3,56 +3,13 @@ import { Calendar } from "@/components/ui/calendar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { useUserStore } from "@/global/states/userStore";
-import { API_URL } from "@/global/variables/variables";
-import axios from "axios";
 import { CalendarIcon, FileText } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
+import { fetchBestProducts, fetchNoSales, fetchWorstProducts } from "./apiReports.functions";
 
 
 
-// Simulación de funciones para cada reporte (reemplaza por tus fetch reales)
-const fetchBestProducts = async (date: Date, period: string): Promise<Blob | undefined> => {
-    try {
-        const url = API_URL;
-        const response = await axios.post(`${url}/reports/best-products`, 
-            {
-                username: useUserStore.getState().user?.id || "defaultUser",
-	            daydate: date,
-                period: period// Puedes cambiar esto según el periodo seleccionado
-            }, 
-            {
-                withCredentials: true,
-                responseType: "blob"
-            }
-        );
-
-        const data: Blob = response.data;
-        return data;
-    } catch (error) {
-        toast.error("Error al generar el reporte de productos más vendidos.", {
-            description: "Por favor, inténtelo de nuevo más tarde.",
-        });
-        return;
-    }
-};
-
-const fetchWorstProducts = async () => {
-  return [{ nombre: "Producto 3", ventas: 2 }, { nombre: "Producto 4", ventas: 1 }];
-};
-
-const fetchNoSales = async () => {
-  return [{ nombre: "Producto 5" }, { nombre: "Producto 6" }];
-};
-
-const fetchStock = async () => {
-  return [{ nombre: "Producto 7", stock: 50 }, { nombre: "Producto 8", stock: 30 }];
-};
-
-const fetchSales = async () => {
-  return [{ fecha: "2025-07-01", total: 500 }, { fecha: "2025-07-02", total: 300 }];
-};
 
 export function Reports(){
 
@@ -65,14 +22,18 @@ export function Reports(){
     const [pdfUrl, setPdfUrl] = useState<string | null>(null);
     const [reportData, setReportData] = useState<Blob | undefined>();
 
-    const fetchers: Record<string, (date: Date, period: string) => Promise<Blob | undefined>>  = {
+    // lo dejé cómo Any porque siento que queda más entendible xd
+    // básicamente cada método del objeto ejecuta una función asincrónica anónima, que devuelve una promesa de tipo binario
+    // o undefined en caso de que falle, los parametros de la función anónima son los estados de la fecha y periodo
+    const fetchers: any  = {
         "best-products": async (date: Date, period: string): Promise<Blob | undefined> => await fetchBestProducts(date, period),
-        // "worst-products": fetchWorstProducts,
-        // "no-sales": fetchNoSales,
+        "worst-products": async (date: Date, period: string): Promise<Blob | undefined> => await fetchWorstProducts(date, period),
+        "no-sales": async (date: Date, period: string): Promise<Blob | undefined> => await fetchNoSales(date, period),
         // "stock-report": fetchStock,
         // "sales-report": fetchSales,
     }
 
+    // efecto para generar la url del PDF y mostrarlo en pantalla
     useEffect(() => {
         if(reportData){
             const url = URL.createObjectURL(reportData);
@@ -83,7 +44,7 @@ export function Reports(){
         }
     }, [reportData])
 
-
+    // manejador de petición del reporte
     async function fetchReport() {
         if(!date) {
             toast.warning("Por favor, selecciona una fecha antes de generar el reporte.",{
@@ -92,10 +53,9 @@ export function Reports(){
             });
             return;
         }
-        (async () => {
-            const data: Blob | undefined = await fetchers[selectedReport](date, period);
-            setReportData(data);
-        })()
+        const data: Blob | undefined = await fetchers[selectedReport](date, period);
+        console.log(data);
+        setReportData(data);
     }
 
     return(
