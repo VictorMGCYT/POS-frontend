@@ -88,6 +88,7 @@ export function AppSidebar() {
               if(userRole === 'user' && item.title === 'Inventario') return
               if(userRole === 'user' && item.title === 'Usuarios') return
               if(userRole === 'user' && item.title === 'Reportes') return
+              if(userRole === 'user' && item.title === 'Generador de QR') return
               return (
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton 

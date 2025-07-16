@@ -6,6 +6,7 @@ import type { UserDataInterface } from "./interfaces";
 import DialogAddUser from "./components/DialogAddUser";
 import TableUsers from "./components/TableUsers";
 import { handleAddUser } from "./apiFunctions";
+import { Outlet } from "react-router";
 
 
 
@@ -65,16 +66,15 @@ export default function UsersModule(){
                         <CardDescription>Lista de usuarios</CardDescription>
                     </CardHeader>
                     <CardContent>
-                        
                         {/* Tabla con los usuario */}
                         <TableUsers
                             users={users}
                             fetchUsers={fetchUsers}
                         />
-
                     </CardContent>
                 </Card>
             </div>
+            <Outlet/>
         </>
 
     );

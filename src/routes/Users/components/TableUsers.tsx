@@ -2,17 +2,12 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import type { User } from "@/hooks/useUsers";
 import { Edit, Trash } from "lucide-react";
 import { capitalizeWords } from "@/global/functions/capitalizeWords";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { useRef, useState } from "react";
-import { Label } from "@/components/ui/label";
-import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Button } from "@/components/ui/button";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
-import { userEditSchema } from "../schemas";
 import { toast } from "sonner";
 import axios from "axios";
 import { API_URL } from "@/global/variables/variables";
+import { useNavigate } from "react-router";
 
 interface TableUsersPropsInterface {
     users: User[];
@@ -22,83 +17,24 @@ interface TableUsersPropsInterface {
 export default function TableUsers( TableUsersProps: TableUsersPropsInterface ){
 
     const { users, fetchUsers } = TableUsersProps;
-    const refEditUser = useRef<HTMLButtonElement>(null);
-    const [editUser, setEditUser] = useState<User>({
-        id: "",
-        username: "",
-        firstName: "",
-        paternalSurname: "",
-        maternalSurname: "",
-        role: "user", // Por defecto, el rol es 'user'
-        createdAt: new Date(),
-    });
     // Referencia y estados para eliminar usuario
     const refDeleteUser = useRef<HTMLButtonElement>(null);
     const [deleteUser, setDeleteUser] = useState<string>('')
+    const navigate = useNavigate();
 
-    // ! funciones para abrir los diálogo
-    const handleDialogEdit = (user: User) => {
-        refEditUser.current?.click();
-        setEditUser({...user});
+    // ! Esto llama a navigate de react-router para abir EditUserDialog
+    const handleDialogEdit = (user: string) => {
+        // Abrir el componente <EditUserDialog />
+        navigate(`/usuarios/${user}`);
     }
+
+
     async function handleDialogDelete(user: User) {
         refDeleteUser.current?.click();
         setDeleteUser(user.id);
     } 
 
-    // ! Función para manejar el envío del formulario de edición de usuario
-    async function handleEditUserSubmit(e: React.FormEvent<HTMLFormElement>) {
-        e.preventDefault();
-        
-        try {
-            
-            const result = userEditSchema.safeParse(editUser);
-
-            // Validaciones del esquema
-            if (!result.success) {
-                result.error.errors.forEach((error) => {
-                    toast.error("Error", {
-                        description: error.message,
-                    });
-                })
-                return;
-            }
-            const url = API_URL;
-            await axios.patch(`${url}/auth/update-user/${editUser.id}`, {
-                username: editUser.username,
-                firstName: editUser.firstName,
-                paternalSurname: editUser.paternalSurname,
-                maternalSurname: editUser.maternalSurname,
-                role: editUser.role
-            }, {
-                withCredentials: true
-            })
-
-            toast.success("Usuario editado correctamente", {
-                description: "El usuario ha sido editado correctamente.",
-            });
-
-            // Reiniciar el formulario
-            setEditUser({
-                id: "",
-                username: "",
-                firstName: "",
-                paternalSurname: "",
-                maternalSurname: "",
-                role: "user", // Por defecto, el rol es 'user'
-                createdAt: new Date(),
-            });
-
-            // Refrescamos la lista de usuarios
-            fetchUsers();
-        } catch (error) {
-            toast.error("Error al editar el usuario", {
-                description: "Ha ocurrido un error al editar el usuario. Por favor, inténtalo de nuevo.",
-            });
-        }
-
-        refEditUser.current?.click();
-    }
+   
 
     async function handleDeleteUserSubtim() {
         try {
@@ -163,105 +99,14 @@ export default function TableUsers( TableUsersProps: TableUsersPropsInterface ){
                                         {user.role}
                                     </TableCell>
                                     <TableCell className="flex items-center whitespace-pre">
-                                        <Edit className="hover:cursor-pointer" size={20} onClick={() => handleDialogEdit(user)}/>   |   <Trash className="stroke-red-500 hover:cursor-pointer" onClick={() => handleDialogDelete(user)} size={20}/>
+                                        <Edit className="hover:cursor-pointer" size={20} onClick={() => handleDialogEdit(user.id)}/>   |   <Trash className="stroke-red-500 hover:cursor-pointer" onClick={() => handleDialogDelete(user)} size={20}/>
                                     </TableCell>
                                 </TableRow>
                             )
                         })
                     }
                 </TableBody>
-            </Table>
-
-            {/* Dialogo para editar un producto */}
-            <Dialog>
-                <DialogTrigger 
-                    ref={refEditUser}
-                    className="hidden">
-                    Open
-                </DialogTrigger>
-                <DialogContent>
-                    <DialogHeader>
-                    <DialogTitle>
-                        Editar Usuario
-                    </DialogTitle>
-                    <DialogDescription>
-                        Editar datos del usuario seleccionado.
-                    </DialogDescription>
-                    </DialogHeader>
-                    <form 
-                        onSubmit={(e) => handleEditUserSubmit(e)}
-                        className="grid gap-2 grid-cols-2">
-                        <Label htmlFor="username">
-                            Nombre de Usuario:
-                        </Label>
-                        <Label htmlFor="first-name">
-                            Nombre:
-                        </Label>
-
-                        <Input
-                            id="username"
-                            onChange={(e) => setEditUser({ ...editUser, username: e.target.value })}
-                            value={editUser.username}
-                            minLength={3}
-                            maxLength={20}
-                            type="text"
-                        />
-                        <Input
-                            id="first-name"
-                            onChange={(e) => setEditUser({ ...editUser, firstName: e.target.value })}
-                            value={editUser.firstName}
-                            minLength={3}
-                            maxLength={40}
-                            type="text"
-                        />
-
-                        <Label htmlFor="paternal-surname">
-                            Apellido Paterno:
-                        </Label>
-                        <Label htmlFor="maternal-surname">
-                            Apellido Materno:
-                        </Label>
-                        <Input
-                            id="paternal-surname"
-                            onChange={(e) => setEditUser({ ...editUser, paternalSurname: e.target.value })}
-                            value={editUser.paternalSurname}
-                            minLength={3}
-                            maxLength={20}
-                            type="text"
-                        />
-                        <Input
-                            id="maternal-surname"
-                            onChange={(e) => setEditUser({ ...editUser, maternalSurname: e.target.value })}
-                            value={editUser.maternalSurname}
-                            minLength={3}
-                            maxLength={20}
-                            type="text"
-                        />
-                        <Label htmlFor="role" className="col-span-2">
-                            Rol:
-                        </Label>
-                        <Select 
-                            defaultValue={editUser.role}
-                            onValueChange={(value) => setEditUser({ ...editUser, role: value as "user" | "admin"}) }>
-                            <SelectTrigger className="col-span-2 w-full">
-                                <SelectValue placeholder="user" />
-                            </SelectTrigger>
-                            <SelectContent>
-                                <SelectItem value="user">user</SelectItem>
-                                <SelectItem value="admin">admin</SelectItem>
-                            </SelectContent>
-                        </Select>
-
-                        <Button 
-                            type="submit"
-                            className="bg-blue-600 hover:bg-blue-800 text-white
-                            col-span-2 mt-4 hover:cursor-pointer">
-                            Editar Usuario
-                        </Button>
-                    </form>
-                </DialogContent>
-            </Dialog>
-
+            </Table>           
 
             {/* Diálogo para eliminar un usuario */}
             <AlertDialog>
