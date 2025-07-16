@@ -14,6 +14,8 @@ import UsersModule from './routes/Users/Users.tsx';
 import Layout from './Layout.tsx';
 import { EditUserDialog } from './routes/Users/components/EditUserDialog.tsx';
 import { LoaderUser } from './loaders-react-router/LoaderUser.ts';
+import DialogEditProduct from './routes/Inventario/Components/DialogEditProduct.tsx';
+import { LoaderProducts } from './loaders-react-router/LoaderProducts.ts';
 
 const router = createBrowserRouter([
   {
@@ -29,7 +31,16 @@ const router = createBrowserRouter([
       },
       {
         path: "inventario",
-        element: <ProtectRoutes permitedRole="admin"><Inventario/></ProtectRoutes>
+        element: <ProtectRoutes permitedRole="admin"><Inventario/></ProtectRoutes>,
+        children: [
+          {
+            path: "editar-producto/:productId",
+            element: <DialogEditProduct/>,
+            loader: async ({params}) => {
+              return LoaderProducts(params);
+            }
+          }
+        ]
       },
       {
         path: "corte-de-caja",
