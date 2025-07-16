@@ -6,6 +6,7 @@ import { useRef, useState } from "react";
 import {QRCodeSVG} from 'qrcode.react';
 import { toast } from "sonner";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Label } from "@/components/ui/label";
 
 
 
@@ -74,10 +75,11 @@ export default function QrCodeGenrator() {
                         </CardAction>
                     </CardHeader>
                     <CardContent className="flex flex-col gap-2">
-                        <p>UUID Generado:</p>
+                        <Label htmlFor="qr-code-input">Escribe tu código personalizado:</Label>
                         <div className="flex gap-2">
                             <Input
-                                placeholder="Código QR generado"
+                                id="qr-code-input"
+                                placeholder="Código QR a generar"
                                 value={qrCode}
                                 onChange={e => {
                                     const value = e.target.value.replace(/[^a-z0-9_]/g, "");

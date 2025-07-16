@@ -72,7 +72,7 @@ function Login() {
     <>
       <div className='flex flex-col w-full h-screen items-center justify-center'>
         <h1 className="text-4xl font-bold mb-8">
-          Tienda POS
+          Ventry POS
         </h1>
         <Card className="w-[90%] max-w-[500px] shadow-2xl dark:bg-slate-950">
           <CardHeader>

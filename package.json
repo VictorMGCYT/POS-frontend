@@ -8,7 +8,7 @@
     "build": "tsc -b && vite build",
     "lint": "eslint .",
     "preview": "vite preview",
-    "dev:electron": "vite & electron electron/main.cjs"
+    "dev:electron": "electron electron/main.cjs"
   },
   "dependencies": {
     "@radix-ui/react-alert-dialog": "^1.1.14",

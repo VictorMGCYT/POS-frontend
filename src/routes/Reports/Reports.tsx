@@ -6,7 +6,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { CalendarIcon, FileText } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
-import { fetchBestProducts, fetchNoSales, fetchStock, fetchWorstProducts } from "./apiReports.functions";
+import { fetchBestProducts, fetchEarns, fetchNoSales, fetchStock, fetchWorstProducts } from "./apiReports.functions";
 
 
 
@@ -30,7 +30,7 @@ export function Reports(){
         "worst-products": async (date: Date, period: string): Promise<Blob | undefined> => await fetchWorstProducts(date, period),
         "no-sales": async (date: Date, period: string): Promise<Blob | undefined> => await fetchNoSales(date, period),
         "stock-report": async (): Promise<Blob | undefined> => await fetchStock(),
-        // "earns-report": fetchSales,
+        "earns-report": async (date: Date, period: string): Promise<Blob | undefined> => await fetchEarns(date, period) // Aquí deberías reemplazar con la función real para ganancias
     }
 
     // efecto para generar la url del PDF y mostrarlo en pantalla

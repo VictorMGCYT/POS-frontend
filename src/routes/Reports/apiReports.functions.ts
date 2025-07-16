@@ -92,6 +92,22 @@ export const fetchStock = async (): Promise<Blob | undefined> => {
     }
 };
 
-export const fetchSales = async () => {
-  return [{ fecha: "2025-07-01", total: 500 }, { fecha: "2025-07-02", total: 300 }];
+export const fetchEarns = async (date: Date, period: string): Promise<Blob | undefined> => {
+  try {
+    const response = await axios.post(`${url}/reports/earns`, {
+        userId: useUserStore.getState().user?.id || "defaultUser",
+        daydate: date,
+        period: period
+    },{
+        withCredentials: true,
+        responseType: 'blob'
+    })
+    const data: Blob = response.data;
+    return data;
+  } catch (error) {
+    toast.error("Error al generar el reporte de ganancias.", {
+      description: "Por favor, inténtelo de nuevo más tarde.",
+    });
+    return;
+  }
 };
