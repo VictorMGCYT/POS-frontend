@@ -13,9 +13,7 @@ import QrCodeGenrator from './routes/Qr-Code/QrCodeGenerator.tsx';
 import UsersModule from './routes/Users/Users.tsx';
 import Layout from './Layout.tsx';
 import { EditUserDialog } from './routes/Users/components/EditUserDialog.tsx';
-import { LoaderUser } from './loaders-react-router/LoaderUser.ts';
 import DialogEditProduct from './routes/Inventario/Components/DialogEditProduct.tsx';
-import { LoaderProducts } from './loaders-react-router/LoaderProducts.ts';
 
 const router = createBrowserRouter([
   {
@@ -35,10 +33,7 @@ const router = createBrowserRouter([
         children: [
           {
             path: "editar-producto/:productId",
-            element: <DialogEditProduct/>,
-            loader: async ({params}) => {
-              return LoaderProducts(params);
-            }
+            element: <DialogEditProduct/>
           }
         ]
       },
@@ -59,11 +54,8 @@ const router = createBrowserRouter([
         element: <ProtectRoutes permitedRole="admin"><UsersModule/></ProtectRoutes>,
         children: [
           {
-            path: ":id",
+            path: "editar/:id",
             element: <EditUserDialog/>,
-            loader: async ({ params }) => {
-              return LoaderUser(params);
-            }
           }
         ]
       }

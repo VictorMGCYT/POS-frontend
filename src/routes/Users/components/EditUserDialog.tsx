@@ -1,6 +1,6 @@
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { useLoaderData, useNavigate } from "react-router";
-import { useState } from "react";
+import { useNavigate, useParams } from "react-router";
+import { useEffect, useState } from "react";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -10,14 +10,26 @@ import { toast } from "sonner";
 import { API_URL } from "@/global/variables/variables";
 import axios from "axios";
 import { useUsers, type User } from "@/hooks/useUsers";
+import { SkeletonForms } from "@/components/ui/skeleton-forms";
+import { loaderUser } from "@/loaders-params-react-router/LoaderUser";
 
 
 export function EditUserDialog(){
     const {fetchUsers} = useUsers();
     // este hook ya traer la información que obtuvo el loader que
     // nos trajo hasta aquí
-    const userInfo = useLoaderData() as User;
-    const [editUser, setEditUser] = useState<User>(userInfo);
+    const { id } = useParams();
+    const [editUser, setEditUser] = useState<User | undefined>();
+
+    useEffect(() => {
+        (async () => {
+            // Llamamos al loader que nos trae el producto
+            const user: User | undefined = await loaderUser({id: id});
+            // lo asignamos al estado
+            setEditUser(user);
+        })()
+    }, [])
+    
     const navigate = useNavigate();
     const [open, setOpen] = useState(true);
 
@@ -29,7 +41,7 @@ export function EditUserDialog(){
     // ! Función para manejar el envío del formulario de edición de usuario
     async function handleEditUserSubmit(e: React.FormEvent<HTMLFormElement>) {
         e.preventDefault();
-        
+        if(!editUser) return;
         try {
             
             const result = userEditSchema.safeParse(editUser);
@@ -78,93 +90,104 @@ export function EditUserDialog(){
         }
         setOpen(false);
         navigate("/usuarios");
+        window.location.reload();
     }
 
     return(
         <>
-            <Dialog open={open} onOpenChange={handleClose}>
-                <DialogContent>
-                    <DialogHeader>
-                    <DialogTitle>
-                        Editar Usuario
-                    </DialogTitle>
-                    <DialogDescription>
-                        Editar datos del usuario seleccionado.
-                    </DialogDescription>
-                    </DialogHeader>
-                    <form 
-                        onSubmit={(e) => handleEditUserSubmit(e)}
-                        className="grid gap-2 grid-cols-2">
-                        <Label htmlFor="username">
-                            Nombre de Usuario:
-                        </Label>
-                        <Label htmlFor="first-name">
-                            Nombre:
-                        </Label>
+            {
+                !editUser ? (  
+                    <SkeletonForms/> 
+                ) 
+                : 
+                (
+                    <Dialog open={open} onOpenChange={handleClose}>
+                        <DialogContent>
+                            <DialogHeader>
+                            <DialogTitle>
+                                Editar Usuario
+                            </DialogTitle>
+                            <DialogDescription>
+                                Editar datos del usuario seleccionado.
+                            </DialogDescription>
+                            </DialogHeader>
+                            <form 
+                                onSubmit={(e) => handleEditUserSubmit(e)}
+                                className="grid gap-2 grid-cols-2">
+                                <Label htmlFor="username">
+                                    Nombre de Usuario:
+                                </Label>
+                                <Label htmlFor="first-name">
+                                    Nombre:
+                                </Label>
 
-                        <Input
-                            id="username"
-                            onChange={(e) => setEditUser({ ...editUser, username: e.target.value })}
-                            value={editUser.username}
-                            minLength={3}
-                            maxLength={20}
-                            type="text"
-                        />
-                        <Input
-                            id="first-name"
-                            onChange={(e) => setEditUser({ ...editUser, firstName: e.target.value })}
-                            value={editUser.firstName}
-                            minLength={3}
-                            maxLength={40}
-                            type="text"
-                        />
+                                <Input
+                                    id="username"
+                                    onChange={(e) => setEditUser({ ...editUser, username: e.target.value })}
+                                    value={editUser.username}
+                                    minLength={3}
+                                    maxLength={20}
+                                    type="text"
+                                />
+                                <Input
+                                    id="first-name"
+                                    onChange={(e) => setEditUser({ ...editUser, firstName: e.target.value })}
+                                    value={editUser.firstName}
+                                    minLength={3}
+                                    maxLength={40}
+                                    type="text"
+                                />
 
-                        <Label htmlFor="paternal-surname">
-                            Apellido Paterno:
-                        </Label>
-                        <Label htmlFor="maternal-surname">
-                            Apellido Materno:
-                        </Label>
-                        <Input
-                            id="paternal-surname"
-                            onChange={(e) => setEditUser({ ...editUser, paternalSurname: e.target.value })}
-                            value={editUser.paternalSurname}
-                            minLength={3}
-                            maxLength={20}
-                            type="text"
-                        />
-                        <Input
-                            id="maternal-surname"
-                            onChange={(e) => setEditUser({ ...editUser, maternalSurname: e.target.value })}
-                            value={editUser.maternalSurname}
-                            minLength={3}
-                            maxLength={20}
-                            type="text"
-                        />
-                        <Label htmlFor="role" className="col-span-2">
-                            Rol:
-                        </Label>
-                        <Select 
-                            defaultValue={editUser.role}
-                            onValueChange={(value) => setEditUser({ ...editUser, role: value as "user" | "admin"}) }>
-                            <SelectTrigger className="col-span-2 w-full">
-                                <SelectValue placeholder="user" />
-                            </SelectTrigger>
-                            <SelectContent>
-                                <SelectItem value="user">user</SelectItem>
-                                <SelectItem value="admin">admin</SelectItem>
-                            </SelectContent>
-                        </Select>
+                                <Label htmlFor="paternal-surname">
+                                    Apellido Paterno:
+                                </Label>
+                                <Label htmlFor="maternal-surname">
+                                    Apellido Materno:
+                                </Label>
+                                <Input
+                                    id="paternal-surname"
+                                    onChange={(e) => setEditUser({ ...editUser, paternalSurname: e.target.value })}
+                                    value={editUser.paternalSurname}
+                                    minLength={3}
+                                    maxLength={20}
+                                    type="text"
+                                />
+                                <Input
+                                    id="maternal-surname"
+                                    onChange={(e) => setEditUser({ ...editUser, maternalSurname: e.target.value })}
+                                    value={editUser.maternalSurname}
+                                    minLength={3}
+                                    maxLength={20}
+                                    type="text"
+                                />
+                                <Label htmlFor="role" className="col-span-2">
+                                    Rol:
+                                </Label>
+                                <Select 
+                                    defaultValue={editUser.role}
+                                    onValueChange={(value) => setEditUser({ ...editUser, role: value as "user" | "admin"}) }>
+                                    <SelectTrigger className="col-span-2 w-full">
+                                        <SelectValue placeholder="user" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="user">user</SelectItem>
+                                        <SelectItem value="admin">admin</SelectItem>
+                                    </SelectContent>
+                                </Select>
 
-                        <Button 
-                            type="submit"
-                            className="bg-blue-600 hover:bg-blue-800 text-white
-                            col-span-2 mt-4 hover:cursor-pointer">
-                            Editar Usuario
-                        </Button>
-                    </form>
-                </DialogContent>
-            </Dialog>
+                                <Button 
+                                    type="submit"
+                                    className="bg-blue-600 hover:bg-blue-800 text-white
+                                    col-span-2 mt-4 hover:cursor-pointer">
+                                    Editar Usuario
+                                </Button>
+                            </form>
+                        </DialogContent>
+                    </Dialog>
+
+                )
+                
+            }
         </>
     )
 }

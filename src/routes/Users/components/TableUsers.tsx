@@ -25,7 +25,7 @@ export default function TableUsers( TableUsersProps: TableUsersPropsInterface ){
     // ! Esto llama a navigate de react-router para abir EditUserDialog
     const handleDialogEdit = (user: string) => {
         // Abrir el componente <EditUserDialog />
-        navigate(`/usuarios/${user}`);
+        navigate(`/usuarios/editar/${user}`);
     }
 
 
