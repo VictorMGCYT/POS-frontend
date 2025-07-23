@@ -13,10 +13,11 @@ import { handleAddProduct } from "./apiFunctions";
 import { PaginationProducts } from "./functions";
 import DialogAddProduct from "./Components/DialogAddProduct";
 import TableInventory from "./Components/TableInventory";
+import { useTokenStore } from "@/global/states/tokenStore";
 
 
 export default function Inventario() {
-
+    const token = useTokenStore.getState().token;
     // El hook solo lo usamos para la primera llamada a la API
     const {products, refetch} = useProduct();
     const [productsPerPage, setProductsPerPage] = useState<productsPagination>();
@@ -60,7 +61,9 @@ export default function Inventario() {
             try {
                 const url = API_URL;
                 const response = await axios.get(`${url}/products/get-all?offset=${offset}&productsTipe=${typeProducts}&orderProducts=${orderProducts}`,{
-                    withCredentials: true,
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                    },
                 });
                 const data: productsPagination = response.data;
                 if (data.products.length > 0) {
@@ -85,7 +88,9 @@ export default function Inventario() {
             try {
                 const url = API_URL;
                 const response = await axios.get(`${url}/products/get-all?offset=${offset}&productsTipe=${typeProducts}&stockOrder=${stockOrder}`,{
-                    withCredentials: true,
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                    },
                 });
                 const data: productsPagination = response.data;
                 if (data.products.length > 0) {
@@ -107,7 +112,9 @@ export default function Inventario() {
         try {
             const url = API_URL;
             const response = await axios.get(`${url}/products/get-all?search=${searchValue}&orderProducts=${orderProducts}`,{
-                withCredentials: true,
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                },
             });
             const data: productsPagination = response.data;
             console.log(data);

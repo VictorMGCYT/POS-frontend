@@ -16,6 +16,7 @@ import { Button } from "./ui/button";
 import { useUserStore } from "@/global/states/userStore";
 import axios from "axios";
 import { API_URL } from "@/global/variables/variables";
+import { useTokenStore } from "@/global/states/tokenStore";
 
 // Menu items.
 const items = [
@@ -52,6 +53,7 @@ const items = [
 ]
 
 export function AppSidebar() {
+  const token = useTokenStore((state) => state.token);
   const user = useUserStore((state) => state.user)
   const location = useLocation();
   const navigate = useNavigate();
@@ -62,7 +64,9 @@ export function AppSidebar() {
       await axios.post(`${url}/auth/logout`, 
         {},
         {
-          withCredentials: true
+          headers: {
+              Authorization: `Bearer ${token}`,
+          },
         }
       );
       navigate('/');

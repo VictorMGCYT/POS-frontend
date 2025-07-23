@@ -10,6 +10,7 @@ import { toast } from "sonner";
 import type { AddProductInterface } from "../interfaces/Interfaces";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Outlet, useNavigate } from "react-router";
+import { useTokenStore } from "@/global/states/tokenStore";
 
 
 interface TableInventoryProps {
@@ -32,7 +33,7 @@ export default function TableInventory(
         setStockOrder,
         refetch
     }: TableInventoryProps) {
-
+    const token = useTokenStore.getState().token;
         
     // ! Estados para manejar el producto a eliminar
     const [loading, setLoading] = useState<boolean>(false);
@@ -59,7 +60,9 @@ export default function TableInventory(
             if(!deleteProduct) return;
             setLoading(true);
             await axios.delete(`${url}/products/delete/${deleteProduct}`,{
-                withCredentials: true
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                },
             });
 
             toast.success('Producto eliminado correctamente',{

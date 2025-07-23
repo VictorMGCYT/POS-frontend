@@ -3,6 +3,7 @@ import { toast } from "sonner";
 import type { AddProductInterface } from "./interfaces/Interfaces";
 import { API_URL, OFFSET_PRODUCTS } from "@/global/variables/variables";
 import { addProductSchema } from "./schemas";
+import { useTokenStore } from "@/global/states/tokenStore";
 
 export async function handleAddProduct(
         e: React.FormEvent<HTMLFormElement>,
@@ -13,7 +14,7 @@ export async function handleAddProduct(
     ) {
         // prevenimos la recarga del formulario 
         e.preventDefault();
-
+        const token = useTokenStore.getState().token;
         try {
             const { name, skuCode, unitPrice, purchasePrice, stockQuantity, isByWeight } = addProduct;
 
@@ -43,7 +44,9 @@ export async function handleAddProduct(
                 stockQuantity: stockQuantity
             },
             {
-                withCredentials: true
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                },
             })
 
             toast.success('Producto agregado correctamente');

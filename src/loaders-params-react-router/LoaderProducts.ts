@@ -1,3 +1,4 @@
+import { useTokenStore } from "@/global/states/tokenStore";
 import { API_URL } from "@/global/variables/variables";
 import axios from "axios";
 import { toast } from "sonner";
@@ -7,13 +8,15 @@ interface loaderProductsParams {
 }
 
 export async function loaderProducts( params: loaderProductsParams) {
-
+    const token = useTokenStore.getState().token;
     const { productId } = params;
 
     try {
         const url = API_URL;
         const response = await axios.get(`${url}/products/product/${productId}`, {
-            withCredentials: true
+            headers: {
+                Authorization: `Bearer ${token}`,
+            },
         });
 
         return response.data;

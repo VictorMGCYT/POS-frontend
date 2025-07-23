@@ -8,6 +8,7 @@ import { toast } from "sonner";
 import axios from "axios";
 import { API_URL } from "@/global/variables/variables";
 import { useNavigate } from "react-router";
+import { useTokenStore } from "@/global/states/tokenStore";
 
 interface TableUsersPropsInterface {
     users: User[];
@@ -15,7 +16,7 @@ interface TableUsersPropsInterface {
 }
 
 export default function TableUsers( TableUsersProps: TableUsersPropsInterface ){
-
+    const token = useTokenStore.getState().token;
     const { users, fetchUsers } = TableUsersProps;
     // Referencia y estados para eliminar usuario
     const refDeleteUser = useRef<HTMLButtonElement>(null);
@@ -40,7 +41,9 @@ export default function TableUsers( TableUsersProps: TableUsersPropsInterface ){
         try {
             const url = API_URL;
             await axios.delete(`${url}/auth/delete-user/${deleteUser}`, {
-                withCredentials: true
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                },
             });
 
             toast.success("Usuario eliminado correctamente", {

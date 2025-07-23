@@ -12,9 +12,11 @@ import axios from "axios";
 import { useUsers, type User } from "@/hooks/useUsers";
 import { SkeletonForms } from "@/components/ui/skeleton-forms";
 import { loaderUser } from "@/loaders-params-react-router/LoaderUser";
+import { useTokenStore } from "@/global/states/tokenStore";
 
 
 export function EditUserDialog(){
+    const token = useTokenStore.getState().token;
     const {fetchUsers} = useUsers();
     // este hook ya traer la información que obtuvo el loader que
     // nos trajo hasta aquí
@@ -63,7 +65,9 @@ export function EditUserDialog(){
                 maternalSurname: editUser.maternalSurname,
                 role: editUser.role
             }, {
-                withCredentials: true
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                },
             })
 
             toast.success("Usuario editado correctamente", {

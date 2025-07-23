@@ -12,9 +12,11 @@ import useProduct from "@/hooks/useProduct";
 import { API_URL } from "@/global/variables/variables";
 import { SkeletonForms } from "@/components/ui/skeleton-forms";
 import { loaderProducts } from "@/loaders-params-react-router/LoaderProducts";
+import { useTokenStore } from "@/global/states/tokenStore";
 
 
 export default function DialogEditProduct() {
+    const token = useTokenStore.getState().token;
     const {refetch} = useProduct();
     // parametro extraido por react-router
     const {productId} = useParams();
@@ -53,7 +55,9 @@ export default function DialogEditProduct() {
                 purchasePrice: editProduct.purchasePrice,
                 stockQuantity: editProduct.stockQuantity
             },{
-                withCredentials: true
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                },
             })
 
             toast.success('Producto editado correctamente',{

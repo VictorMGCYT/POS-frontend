@@ -1,10 +1,11 @@
+import { useTokenStore } from "@/global/states/tokenStore";
 import { API_URL } from "@/global/variables/variables";
 import axios from "axios";
 import { useState } from "react";
 import { toast } from "sonner";
 
 export default function useSales() {
-
+    const token = useTokenStore.getState().token;
     const [sales, setSales] = useState<SaleInteface>();
 
     // Debe de recibir dos parametros obligatorios, el primero la fecha inicial y el segundo la fecha final
@@ -13,7 +14,9 @@ export default function useSales() {
             const url = API_URL;
             const response = await axios.get<SaleInteface>(`${url}/sales/get?startDate=${start}&endDate=${end}`,
                 {
-                    withCredentials: true
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                    },
                 }
             );
             setSales(response.data);

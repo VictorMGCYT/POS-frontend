@@ -3,6 +3,7 @@ import { userShema } from "./schemas";
 import axios from "axios";
 import { API_URL } from "@/global/variables/variables";
 import type { UserDataInterface } from "./interfaces";
+import { useTokenStore } from "@/global/states/tokenStore";
 
 interface AddUserInterface {
     e: React.FormEvent<HTMLFormElement>;
@@ -16,6 +17,7 @@ export const handleAddUser = async (
         handleAddUserProps: AddUserInterface 
     ) => {
     const { e, addUser, setAddUser, fetchUsers } = handleAddUserProps;
+    const token = useTokenStore.getState().token;
     // Prevenimos el comportamiento por defecto del formulario
     e.preventDefault();
     try {
@@ -44,7 +46,9 @@ export const handleAddUser = async (
             password: addUser.password,
             role: addUser.role
         },{
-            withCredentials: true
+            headers: {
+                Authorization: `Bearer ${token}`,
+            },
         })
 
         toast.success("Usuario creado exitosamente", {

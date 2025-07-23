@@ -1,3 +1,4 @@
+import { useTokenStore } from "@/global/states/tokenStore";
 import { API_URL } from "@/global/variables/variables";
 import axios from "axios";
 import Decimal from "decimal.js";
@@ -31,6 +32,7 @@ export async function handleSendSale(
         setSale: React.Dispatch<React.SetStateAction<SaleInterface>>
     ) {
     const url = API_URL;
+    const token = useTokenStore.getState().token;
 
     try {
 
@@ -58,7 +60,9 @@ export async function handleSendSale(
             paymentMethod: sale.paymentMethod,
             saleItems: sale.saleItems
         },{
-            withCredentials: true
+            headers: {
+                Authorization: `Bearer ${token}`,
+            },
         })
 
         toast.success("Venta realizada!", {

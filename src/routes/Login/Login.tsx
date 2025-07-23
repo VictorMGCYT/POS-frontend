@@ -11,6 +11,7 @@ import { useTheme } from "@/hooks/useTheme"
 import { useUserStore } from "@/global/states/userStore"
 import { loginSchema } from "./schemas"
 import { toast } from "sonner"
+import { useTokenStore } from "@/global/states/tokenStore"
 
 
 
@@ -49,12 +50,13 @@ function Login() {
       const response = await axios.post(`${url}/auth/login`, {
         "username": loginData.username,
         "password": loginData.password
-      }, {
-        withCredentials: true
       });
 
-      const user = response.data;
+      const {user, token} = response.data;
+      console.log(user, token);
 
+      // Guardamos el token en el store de Zustand
+      useTokenStore.getState().setToken(token);
       useUserStore.getState().setUser(user);
 
       // Redirigimos a la pantalla principal de ventas
