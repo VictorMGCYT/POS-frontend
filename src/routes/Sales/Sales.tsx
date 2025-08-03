@@ -218,7 +218,7 @@ export default function Sales(){
                             Ticket de Venta
                         </CardTitle>
                     </CardHeader>
-                    <CardContent>
+                    <CardContent className="max-h-[300px] overflow-y-auto">
                         {/* Tabla con el contenido del ticket */}
                         <TableTicket
                             sale={sale}
